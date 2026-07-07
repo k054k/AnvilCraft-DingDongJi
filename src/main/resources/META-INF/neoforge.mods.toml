@@ -8,15 +8,15 @@ version = "${file.jarVersion}"
 displayName = "AnvilCraft-DingDongJi"
 credits = "WPS灵犀"
 authors = "_054k"
-description = '''
-铁砧工艺：叮咚叽 - 自定义模组
-包含叽砧、黑洞剑等自定义内容。
+description = '''AnvilCraft-DingDongJi - 铁砧工艺扩展模组
+包含叽砧、叽装备、黑洞剑、白洞剑、创造模板及三套定制盔甲（皇家钢、余烬金属、超限合金）。
+Requires AnvilCraft as dependency.
 '''
 
 [[dependencies.dingdongji]]
     modId = "anvilcraft"
     mandatory = true
-    versionRange = "[1.5.1,1.5.100)"
+    versionRange = "[1.5,1.7)"
     ordering = "NONE"
     side = "BOTH"
 
