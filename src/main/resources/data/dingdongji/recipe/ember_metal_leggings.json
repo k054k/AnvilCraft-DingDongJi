@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": {
+    "tag": "dingdongji:ember_metal_leggings_base"
+  },
+  "addition": {
+    "item": "anvilcraft:ember_metal_block"
+  },
+  "template": {
+    "item": "anvilcraft:ember_metal_upgrade_smithing_template"
+  },
+  "result": {
+    "id": "dingdongji:ember_metal_leggings",
+    "count": 1
+  }
+}

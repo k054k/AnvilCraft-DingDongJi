@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "dingdongji:block/ji_anvil", "y": 180 },
+    "facing=east":  { "model": "dingdongji:block/ji_anvil", "y": 270 },
+    "facing=south": { "model": "dingdongji:block/ji_anvil", "y": 0 },
+    "facing=west":  { "model": "dingdongji:block/ji_anvil", "y": 90 }
+  }
+}

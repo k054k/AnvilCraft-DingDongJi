@@ -1,0 +1,30 @@
+{
+  "type": "anvilcraft:anvil_collision",
+  "anvil": {
+    "blocks": "anvilcraft:transcendence_anvil"
+  },
+  "consume": true,
+  "hitBlock": {
+    "blocks": "anvilcraft:singularity_crystal"
+  },
+  "output_items": [
+    {
+      "count": {
+        "type": "minecraft:binomial",
+        "n": 1.0,
+        "p": 1.0
+      },
+      "id": "anvilcraft:black_hole"
+    },
+    {
+      "count": {
+        "type": "minecraft:binomial",
+        "n": 1.0,
+        "p": 1.0
+      },
+      "id": "anvilcraft:white_hole"
+    }
+  ],
+  "speed": 256,
+  "transform_blocks": []
+}

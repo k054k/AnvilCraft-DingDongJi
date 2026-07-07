@@ -1,0 +1,41 @@
+{
+  "type": "anvilcraft:eight_to_one_smithing",
+  "inputs": [
+    {
+      "items": "anvilcraft:ember_metal_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:eight_to_one_smithing_template"
+    },
+    {
+      "items": "anvilcraft:royal_steel_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:two_to_one_smithing_template"
+    },
+    {
+      "items": "anvilcraft:frost_metal_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:transcendium_upgrade_smithing_template"
+    },
+    {
+      "items": "minecraft:netherite_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:four_to_one_smithing_template"
+    }
+  ],
+  "material": {
+    "items": "anvilcraft:multiphase_transcendium"
+  },
+  "result": {
+    "item": {
+      "count": 1,
+      "id": "dingdongji:create_template"
+    }
+  },
+  "template": {
+    "items": "anvilcraft:eight_to_one_smithing_template"
+  }
+}

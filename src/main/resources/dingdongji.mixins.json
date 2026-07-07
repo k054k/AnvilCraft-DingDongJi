@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "package": "com.dingdongji.mod.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "mixins": [
+    "AnvilBlockMixin",
+    "SmithingMenuMixin",
+    "SmithingTransformRecipeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

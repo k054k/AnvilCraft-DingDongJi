@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GKG",
+    "KNK",
+    "GKG"
+  ],
+  "key": {
+    "G": {
+      "item": "dingdongji:keji_block"
+    },
+    "K": {
+      "item": "minecraft:gold_block"
+    },
+    "N": {
+      "item": "minecraft:netherite_upgrade_smithing_template"
+    }
+  },
+  "result": {
+    "id": "dingdongji:ji_upgrade",
+    "count": 1
+  }
+}

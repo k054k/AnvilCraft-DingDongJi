@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": {
+    "tag": "dingdongji:transcendium_chestplate_base"
+  },
+  "addition": {
+    "item": "anvilcraft:transcendium_block"
+  },
+  "template": {
+    "item": "anvilcraft:transcendium_upgrade_smithing_template"
+  },
+  "result": {
+    "id": "dingdongji:transcendium_chestplate",
+    "count": 1
+  }
+}

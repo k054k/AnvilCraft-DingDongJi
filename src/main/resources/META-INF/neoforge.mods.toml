@@ -1,0 +1,25 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "LGPL-3.0"
+
+[[mods]]
+modId = "dingdongji"
+version = "${file.jarVersion}"
+displayName = "AnvilCraft-DingDongJi"
+credits = "WPS灵犀"
+authors = "_054k"
+description = '''
+铁砧工艺：叮咚叽 - 自定义模组
+包含叽砧、黑洞剑等自定义内容。
+'''
+
+[[dependencies.dingdongji]]
+    modId = "anvilcraft"
+    mandatory = true
+    versionRange = "[1.5.1,1.5.100)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[mixins]]
+config = "dingdongji.mixins.json"
+

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": {
+    "item": "minecraft:netherite_sword"
+  },
+  "addition": {
+    "item": "anvilcraft:black_hole"
+  },
+  "template": {
+    "item": "dingdongji:create_template"
+  },
+  "result": {
+    "id": "dingdongji:black_hole_sword",
+    "count": 1
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": {
+    "tag": "dingdongji:royal_steel_boots_base"
+  },
+  "addition": {
+    "item": "anvilcraft:royal_steel_block"
+  },
+  "template": {
+    "item": "anvilcraft:royal_steel_upgrade_smithing_template"
+  },
+  "result": {
+    "id": "dingdongji:royal_steel_boots",
+    "count": 1
+  }
+}

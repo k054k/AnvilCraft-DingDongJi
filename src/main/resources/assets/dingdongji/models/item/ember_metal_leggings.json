@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dingdongji:item/ember_metal_leggings"
+  }
+}

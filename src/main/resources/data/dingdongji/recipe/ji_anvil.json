@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": {
+    "item": "dingdongji:ji_upgrade"
+  },
+  "base": {
+    "item": "minecraft:anvil"
+  },
+  "addition": {
+    "item": "dingdongji:keji_block"
+  },
+  "result": {
+    "id": "dingdongji:ji_anvil",
+    "count": 1
+  }
+}
