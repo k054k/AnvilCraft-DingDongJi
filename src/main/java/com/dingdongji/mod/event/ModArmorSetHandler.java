@@ -122,9 +122,14 @@ public class ModArmorSetHandler {
         GLOWING_VISION_ENABLED.remove(uuid);
         COMFORTABLE_ENABLED.remove(uuid);
         NEUTRON_BARRIER_ENABLED.remove(uuid);
-        BOSS_PROXIMITY_START.clear();
-        BOSS_REPEL_COOLDOWN.clear();
-        REPEL_PARTICLE_COOLDOWN.clear();
+        HELMET_MODE.remove(uuid);
+        IONOCRAFT_FLYING.remove(uuid);
+        IONOCRAFT_GRANTED.remove(uuid);
+        IONOCRAFT_SPEED_BOOSTED.remove(uuid);
+        IONOCRAFT_FLYING_SYNC.remove(uuid);
+        IONOCRAFT_SYNC_LAST_TICK.remove(uuid);
+        REPEL_PARTICLE_COOLDOWN.remove(uuid);
+        // Boss 冷却按 Boss UUID 索引，不能在单个玩家退出时全局 clear，否则多人会互相打断
         CHEST_HEAL_COOLDOWN.remove(uuid);
         CHEST_HEAL_NOTIFIED.remove(uuid);
         EMBER_LEG_LAST_HEAL_TIME.remove(uuid);
@@ -356,6 +361,7 @@ public class ModArmorSetHandler {
                         .withStyle(ChatFormatting.GREEN),
                 true
         );
+        saveToggleStates(player);
     }
 
     private static void handleComfortable(Player player) {
@@ -406,6 +412,7 @@ public class ModArmorSetHandler {
             msg = Component.literal("蹈火：关").withStyle(ChatFormatting.RED);
         }
         player.displayClientMessage(msg, true);
+        saveToggleStates(player);
     }
 
 
@@ -677,9 +684,13 @@ public class ModArmorSetHandler {
         if (player.hasEffect(MobEffects.DARKNESS)) {
             player.removeEffect(MobEffects.DARKNESS);
         }
+        // 头盔着火免疫：允许熄灭已有火焰（mixin 只拦截 >0 的 setRemainingFireTicks）
+        if (player.getRemainingFireTicks() > 0) {
+            player.clearFire();
+        }
 
         // 从 HELMET_MODE Map 读取夜视状态（与旧版一致，避免 DataComponent 同步导致闪烁）
-        int mode = HELMET_MODE.getOrDefault(player.getUUID(), 0);
+        int mode = HELMET_MODE.getOrDefault(player.getUUID(), 5);
         if (mode == 2 || mode == 4) {
             addHiddenEffect(player, MobEffects.NIGHT_VISION, 0);
         }
@@ -735,7 +746,7 @@ public class ModArmorSetHandler {
         if (!helmet.is(ModItems.TRANSCENDIUM_HELMET.get())) return;
 
         UUID uuid = player.getUUID();
-        int nextMode = (HELMET_MODE.getOrDefault(uuid, 0) + 1) % 6;
+        int nextMode = (HELMET_MODE.getOrDefault(uuid, 5) + 1) % 6;
         HELMET_MODE.put(uuid, nextMode);
         boolean glowingOn = (nextMode == 0 || nextMode == 4);
         boolean nightVisionOn = (nextMode == 2 || nextMode == 4);
@@ -759,6 +770,7 @@ public class ModArmorSetHandler {
         player.displayClientMessage(
                 Component.literal(names[nextMode]).withStyle(HELMET_MODE_COLORS[nextMode]), true
         );
+        saveToggleStates(player);
     }
 
     public static void toggleNeutronBarrier(ServerPlayer player) {
@@ -782,6 +794,7 @@ public class ModArmorSetHandler {
             case 3 -> player.displayClientMessage(
                     Component.literal("中子屏罩：全部屏蔽").withStyle(ChatFormatting.LIGHT_PURPLE), true);
         }
+        saveToggleStates(player);
     }
 
     // ========================================================================
@@ -1016,9 +1029,11 @@ public class ModArmorSetHandler {
     // 每次属性计算时动态添加，附魔变化自动触发重算）
 
     // ========================================================================
-    //  超限合金靴子：蹈虚（飘升机增强后可通过按键开启创造飞行）
+    //  超限合金靴子：蹈虚（穿戴后即可创造飞行，按键可开关；与飘升机同时穿戴加速）
     // ========================================================================
     private static final Map<UUID, Boolean> IONOCRAFT_FLYING = new HashMap<>();
+    /** 本 tick 周期内是否由本 mod 授予了 mayfly，脱靴时只清这一次 */
+    private static final Map<UUID, Boolean> IONOCRAFT_GRANTED = new HashMap<>();
 
     private static final float DEFAULT_FLY_SPEED = 0.05f;
     private static final float BOOSTED_FLY_SPEED = 0.1f;   // 飘升机+增强靴子 = 2倍飞行速度
@@ -1034,9 +1049,9 @@ public class ModArmorSetHandler {
             // 【重要】绝不在未穿超限靴子时主动关闭 mayfly/flying：
             // 飞行能力可能来自飘升机(AnvilCraft)或其他附属模组，本 mod 不应干预，
             // 否则会误关其他模组的飘升机飞行。
-            // 仅当“本 mod 之前开启过蹈虚飞行(IONOCRAFT_FLYING=true)”时才清理这部分飞行。
-            boolean wasIonocraftFlying = IONOCRAFT_FLYING.getOrDefault(uuid, false);
-            IONOCRAFT_FLYING.remove(uuid);
+            // 开关偏好保留在 IONOCRAFT_FLYING 中，下次穿上仍按上次选择恢复。
+            // 只用 GRANTED 判断「本 mod 是否正在授予飞行」，避免每 tick 误关其他模组。
+            boolean granted = IONOCRAFT_GRANTED.remove(uuid) == Boolean.TRUE;
             IONOCRAFT_SPEED_BOOSTED.remove(uuid);
             boolean needUpdate = false;
             // 仅当飞行速度确实等于本 mod 的加速值(0.1)时还原为默认(0.05)，
@@ -1045,8 +1060,9 @@ public class ModArmorSetHandler {
                 player.getAbilities().setFlyingSpeed(DEFAULT_FLY_SPEED);
                 needUpdate = true;
             }
-            // 仅关闭本 mod 自己开启的蹈虚飞行；飘升机或其他模组的飞行能力一律保留
-            if (wasIonocraftFlying && !player.isCreative() && !player.isSpectator()) {
+            // 仅关闭本 mod 自己开启的蹈虚飞行；飘升机仍有电时保留其飞行能力
+            boolean hasIonocraft = AnvilCraftCompat.hasActiveIonocraftBackpack(player);
+            if (granted && !hasIonocraft && !player.isCreative() && !player.isSpectator()) {
                 if (player.getAbilities().mayfly) {
                     player.getAbilities().mayfly = false;
                     needUpdate = true;
@@ -1063,7 +1079,9 @@ public class ModArmorSetHandler {
             return;
         }
 
-        boolean shouldFly = IONOCRAFT_FLYING.getOrDefault(uuid, false);
+        // 默认开启：穿上即可飞行（与飘升机背包一致），无需每次进游戏按快捷键。
+        // computeIfAbsent 把偏好写入 map，脱靴时才能正确关掉本 mod 开的飞行。
+        boolean shouldFly = IONOCRAFT_FLYING.computeIfAbsent(uuid, k -> true);
         boolean isCreative = player.isCreative();
         boolean isSpectator = player.isSpectator();
         // 飘升机是否有电（有电时由飘升机自身供能/出粒子，蹈虚作为速度增强）
@@ -1087,6 +1105,11 @@ public class ModArmorSetHandler {
             player.getAbilities().flying = false;
             player.getAbilities().setFlyingSpeed(DEFAULT_FLY_SPEED);
             player.onUpdateAbilities();
+        }
+        if (shouldFly) {
+            IONOCRAFT_GRANTED.put(uuid, true);
+        } else {
+            IONOCRAFT_GRANTED.remove(uuid);
         }
 
         // ====== 飞行状态同步（复刻飘升机：广播蹈虚飞行状态到所有客户端）======
@@ -1135,16 +1158,16 @@ public class ModArmorSetHandler {
         Integer lastTick = IONOCRAFT_SYNC_LAST_TICK.get(uuid);
 
         if (prev == null || prev != nowFlying) {
-            // 状态变化：立即广播
+            // 状态变化：立即广播（含自己，第三人称粒子才稳定）
             IONOCRAFT_SYNC_LAST_TICK.put(uuid, tick);
-            PacketDistributor.sendToPlayersTrackingEntity(
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
                     serverPlayer,
                     new IonocraftBootsFlyingPacket(serverPlayer.getId(), nowFlying)
             );
         } else if (nowFlying && (lastTick == null || tick - lastTick >= IONOCRAFT_SYNC_INTERVAL)) {
             // 持续飞行：周期性重发，保证新客户端能收到
             IONOCRAFT_SYNC_LAST_TICK.put(uuid, tick);
-            PacketDistributor.sendToPlayersTrackingEntity(
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
                     serverPlayer,
                     new IonocraftBootsFlyingPacket(serverPlayer.getId(), true)
             );
@@ -1158,7 +1181,7 @@ public class ModArmorSetHandler {
         }
 
         UUID uuid = player.getUUID();
-        boolean nowFlying = !IONOCRAFT_FLYING.getOrDefault(uuid, false);
+        boolean nowFlying = !IONOCRAFT_FLYING.getOrDefault(uuid, true);
         IONOCRAFT_FLYING.put(uuid, nowFlying);
 
         if (nowFlying) {
@@ -1180,6 +1203,7 @@ public class ModArmorSetHandler {
                 Component.literal("\u8E48\u865A\uFF1A" + (nowFlying ? "\u00a7a\u5F00\u542F\u98DE\u884C" : "\u00a7c\u5173\u95ED\u98DE\u884C")),
                 true
         );
+        saveToggleStates(player);
     }
 
 // ========================================================================
@@ -1249,23 +1273,31 @@ public class ModArmorSetHandler {
     private static void saveToggleStates(Player player) {
         var data = player.getPersistentData();
         UUID uuid = player.getUUID();
-        data.putBoolean("dingdongji:glowing_vision", GLOWING_VISION_ENABLED.getOrDefault(uuid, false));
-        data.putInt("dingdongji:helmet_mode", HELMET_MODE.getOrDefault(uuid, 0));
+        data.putInt("dingdongji:helmet_mode", HELMET_MODE.getOrDefault(uuid, 5));
         data.putBoolean("dingdongji:lava_walker", LAVA_WALKER_ENABLED.getOrDefault(uuid, false));
         data.putBoolean("dingdongji:comfortable", COMFORTABLE_ENABLED.getOrDefault(uuid, false));
         data.putInt("dingdongji:neutron_barrier", NEUTRON_BARRIER_ENABLED.getOrDefault(uuid, 0));
-
+        data.putBoolean("dingdongji:ionocraft_flying", IONOCRAFT_FLYING.getOrDefault(uuid, true));
     }
 
     private static void loadToggleStates(Player player) {
         var data = player.getPersistentData();
         UUID uuid = player.getUUID();
-        GLOWING_VISION_ENABLED.put(uuid, data.getBoolean("dingdongji:glowing_vision"));
-        HELMET_MODE.put(uuid, data.getInt("dingdongji:helmet_mode"));
+
+        int helmetMode = data.contains("dingdongji:helmet_mode") ? data.getInt("dingdongji:helmet_mode") : 5;
+        HELMET_MODE.put(uuid, helmetMode);
+        // 高亮开关以头盔模式为准，避免 mode=0(高亮开) 与 glowing=false 不同步
+        GLOWING_VISION_ENABLED.put(uuid, helmetMode == 0 || helmetMode == 4);
+
         LAVA_WALKER_ENABLED.put(uuid, data.getBoolean("dingdongji:lava_walker"));
         COMFORTABLE_ENABLED.put(uuid, data.getBoolean("dingdongji:comfortable"));
         NEUTRON_BARRIER_ENABLED.put(uuid, data.getInt("dingdongji:neutron_barrier"));
 
+        if (data.contains("dingdongji:ionocraft_flying")) {
+            IONOCRAFT_FLYING.put(uuid, data.getBoolean("dingdongji:ionocraft_flying"));
+        } else {
+            IONOCRAFT_FLYING.put(uuid, true);
+        }
     }
 
     private static void applyAnvilCraftComponent(ItemStack stack) {

@@ -22,8 +22,8 @@ public abstract class DeformationRecipeMixin {
         CreateTemplateMode mode = template.get(ModComponents.CREATE_TEMPLATE_MODE.get());
         if (mode == null) mode = CreateTemplateMode.DEFAULT;
 
-        // ζ: 替代形变模板（DeformationRecipe）
-        if ("zeta".equals(mode.mode())) {
+        // ζ: 替代形变模板；α: 万能模板
+        if ("zeta".equals(mode.mode()) || "alpha".equals(mode.mode())) {
             cir.setReturnValue(true);
         }
     }

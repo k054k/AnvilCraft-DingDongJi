@@ -59,9 +59,11 @@ public class ModNetwork {
     public static class IonocraftBootsFlyingHandler implements IPayloadHandler<IonocraftBootsFlyingPacket> {
         @Override
         public void handle(IonocraftBootsFlyingPacket packet, IPayloadContext context) {
-            context.enqueueWork(() ->
-                    IonocraftBootsClientHandler.onFlyingSync(packet.playerId(), packet.flying())
-            );
+            context.enqueueWork(() -> {
+                if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+                    IonocraftBootsClientHandler.onFlyingSync(packet.playerId(), packet.flying());
+                }
+            });
         }
     }
 

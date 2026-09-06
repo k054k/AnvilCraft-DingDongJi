@@ -58,11 +58,11 @@
   "tooltip.dingdongji.ember_regen": "浴火重生：持续恢复处于熔岩或火焰中佩戴者的生命，处于灵魂火时恢复效果翻倍",
   "tooltip.dingdongji.lava_walker": "蹈火：按 [%s] 切换，行走自带火焰效果",
   "tooltip.dingdongji.glowing_vision": "按 [%s] 键切换高亮敌对生物开关；适应黑暗，高温，水下环境",
-  "tooltip.dingdongji.neutron_barrier": "中子屏罩：按 [z] 切换弹飞敌对生物的开关；清除飞向自身的弹射物",
+  "tooltip.dingdongji.neutron_barrier": "中子屏罩：按 [%s] 切换弹飞敌对生物的开关；清除飞向自身的弹射物",
   "tooltip.dingdongji.barrier_ii": "壁垒II：对大部分伤害大幅减伤，无视魔法伤害，虚空伤害，接触伤害，爆炸伤害；生命值低时紧急治愈穿戴者，触发时清除所有负面效果",
   "tooltip.dingdongji.barrier_ii.cooldown": "应急治愈冷却中：%d秒",
   "tooltip.dingdongji.barrier_ii.ready": "应急治愈就绪",
-  "tooltip.dingdongji.stride_void": "蹈虚：可与飘升机合成在一起，合成后，无需电网即可通过按键开关创造飞行",
+  "tooltip.dingdongji.stride_void": "蹈虚：穿戴后即可创造飞行，无需电网；与飘升机同时穿戴时提升飞行速度",
   "tooltip.dingdongji.ji_set": "穿着全套后提升玩家挖掘速度和方块交互距离",
   "tooltip.dingdongji.ji_anvil.desc": "可突破附魔等级上限，经验翻2倍消耗，10%概率翻倍附魔，20%概率附加诅咒",
   "tooltip.dingdongji.meaningless": "无义：禁用除特定魔咒外的所有魔咒 [按住 左Shift 查看]",
@@ -70,5 +70,5 @@
   "tooltip.dingdongji.meaningless.shifting": "无义：禁用除特定魔咒外的所有魔咒（%s）并将其转换为护甲值与盔甲韧性",
   "tooltip.dingdongji.property.meaningless.curse": "所有诅咒",
   "screen.anvilcraft.cfa.class.special.krypton.golden_ji_planet": "金叽星球",
-  "tooltip.dingdongji.stride_void_enhanced": "蹈虚：按 [%s] 键开启创造飞行"
+  "tooltip.dingdongji.stride_void_enhanced": "蹈虚：穿戴后即可创造飞行，按 [%s] 可开关"
 }

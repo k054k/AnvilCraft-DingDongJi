@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 余烬金属头盔：屏蔽屏幕上的火焰覆盖层。
+ * 余烬 / 超限头盔：屏蔽屏幕上的火焰覆盖层。
  * 火焰覆盖层由 ScreenEffectRenderer.renderFire 渲染（并非 Gui.renderTextureOverlay / displayFireAnimation）。
  * 穿着余烬头盔时 cancel 渲染，不影响 fire ticks 本身（余烬套回耐久等功能仍依赖 in_fire）。
  */
@@ -25,7 +25,8 @@ public abstract class MixinFireOverlay {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
         ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
-        if (helmet.is(ModItems.EMBER_METAL_HELMET.get())) {
+        if (helmet.is(ModItems.EMBER_METAL_HELMET.get())
+                || helmet.is(ModItems.TRANSCENDIUM_HELMET.get())) {
             ci.cancel();
         }
     }

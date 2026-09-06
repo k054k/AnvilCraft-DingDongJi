@@ -5,6 +5,7 @@ import com.dingdongji.mod.block.ModBlocks;
 import com.dingdongji.mod.item.component.*;
 
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -14,12 +15,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
-import java.util.function.Supplier;
 
 public class ModItems {
     public static final DeferredRegister.Items ITEMS =
@@ -75,9 +75,9 @@ public class ModItems {
                     )
             );
 
-    // ===== 叽工具专用 Tier（耐久2333，效率14.0）=====
+    // ===== 叽工具专用 Tier（钻石工具耐久 1561，效率14.0）=====
     public static final Tier JI_TOOL_TIER = new Tier() {
-        @Override public int getUses() { return 2333; }
+        @Override public int getUses() { return 1561; }
         @Override public float getSpeed() { return 14.0f; }
         @Override public float getAttackDamageBonus() { return 0f; }
         @Override public TagKey<Block> getIncorrectBlocksForDrops() { return BlockTags.INCORRECT_FOR_DIAMOND_TOOL; }
@@ -103,45 +103,62 @@ public class ModItems {
                     )
             );
 
-    // ===== 盔甲：叽套 =====
+    /** 叽套仍用工具级 1561；超限无法破坏。护甲分部位走原版倍率。 */
+    private static final int DURABILITY_JI = 1561;
+    /** 原版钻石护甲倍率：头盔 363 / 胸甲 528 / 护腿 495 / 靴子 429 */
+    private static final int VANILLA_DIAMOND = 33;
+    /** 原版下界合金护甲倍率：头盔 407 / 胸甲 592 / 护腿 555 / 靴子 481 */
+    private static final int VANILLA_NETHERITE = 37;
+
+    private static int vanillaArmor(ArmorItem.Type type, int multiplier) {
+        return type.getDurability(multiplier);
+    }
+
+    private static Item.Properties unbreakableArmor() {
+        return new Item.Properties()
+                .durability(2031)
+                .component(DataComponents.UNBREAKABLE, new Unbreakable(true));
+    }
+
+    // ===== 盔甲：叽套（1561）=====
 
     public static final DeferredItem<ArmorItem> JI_HELMET =
             ITEMS.register("ji_helmet",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), ArmorItem.Type.HELMET,
-                            new Item.Properties().durability(ArmorItem.Type.HELMET.getDurability(363)))
+                            new Item.Properties().durability(DURABILITY_JI))
             );
 
     public static final DeferredItem<ArmorItem> JI_CHESTPLATE =
             ITEMS.register("ji_chestplate",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), ArmorItem.Type.CHESTPLATE,
-                            new Item.Properties().durability(ArmorItem.Type.CHESTPLATE.getDurability(363)))
+                            new Item.Properties().durability(DURABILITY_JI))
             );
 
     public static final DeferredItem<ArmorItem> JI_LEGGINGS =
             ITEMS.register("ji_leggings",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), ArmorItem.Type.LEGGINGS,
-                            new Item.Properties().durability(ArmorItem.Type.LEGGINGS.getDurability(363)))
+                            new Item.Properties().durability(DURABILITY_JI))
             );
 
     public static final DeferredItem<ArmorItem> JI_BOOTS =
             ITEMS.register("ji_boots",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), ArmorItem.Type.BOOTS,
-                            new Item.Properties().durability(ArmorItem.Type.BOOTS.getDurability(363)))
+                            new Item.Properties().durability(DURABILITY_JI))
             );
 
-    // ===== 盔甲：皇家钢套 =====
+    // ===== 盔甲：皇家钢套（钻石护甲耐久）=====
 
     public static final DeferredItem<ArmorItem> ROYAL_STEEL_HELMET =
             ITEMS.register("royal_steel_helmet",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.ROYAL_STEEL), ArmorItem.Type.HELMET,
-                            new Item.Properties().durability(ArmorItem.Type.HELMET.getDurability(363)))
+                            new Item.Properties().durability(vanillaArmor(ArmorItem.Type.HELMET, VANILLA_DIAMOND)))
             );
 
     public static final DeferredItem<ArmorItem> ROYAL_STEEL_CHESTPLATE =
             ITEMS.register("royal_steel_chestplate",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.ROYAL_STEEL), ArmorItem.Type.CHESTPLATE,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.CHESTPLATE.getDurability(363))
+                                    .durability(vanillaArmor(ArmorItem.Type.CHESTPLATE, VANILLA_DIAMOND))
                                     .component(ModComponents.ROYAL_STEEL_AFFINITY.get(), RoyalSteelAffinityComponent.INSTANCE)
                     )
             );
@@ -149,25 +166,25 @@ public class ModItems {
     public static final DeferredItem<ArmorItem> ROYAL_STEEL_LEGGINGS =
             ITEMS.register("royal_steel_leggings",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.ROYAL_STEEL), ArmorItem.Type.LEGGINGS,
-                            new Item.Properties().durability(ArmorItem.Type.LEGGINGS.getDurability(363)))
+                            new Item.Properties().durability(vanillaArmor(ArmorItem.Type.LEGGINGS, VANILLA_DIAMOND)))
             );
 
     public static final DeferredItem<ArmorItem> ROYAL_STEEL_BOOTS =
             ITEMS.register("royal_steel_boots",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.ROYAL_STEEL), ArmorItem.Type.BOOTS,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.BOOTS.getDurability(363))
+                                    .durability(vanillaArmor(ArmorItem.Type.BOOTS, VANILLA_DIAMOND))
                                     .component(ModComponents.COMFORTABLE.get(), ComfortableComponent.INSTANCE)
                     )
             );
 
-    // ===== 盔甲：余烬金属套 =====
+    // ===== 盔甲：浮霜金属套（下界合金护甲耐久）=====
 
     public static final DeferredItem<ArmorItem> FROST_METAL_HELMET =
             ITEMS.register("frost_metal_helmet",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.FROST_METAL), ArmorItem.Type.HELMET,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.HELMET.getDurability(33))
+                                    .durability(vanillaArmor(ArmorItem.Type.HELMET, VANILLA_NETHERITE))
                                     .component(ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT)
                     )
             );
@@ -176,7 +193,7 @@ public class ModItems {
             ITEMS.register("frost_metal_chestplate",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.FROST_METAL), ArmorItem.Type.CHESTPLATE,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.CHESTPLATE.getDurability(33))
+                                    .durability(vanillaArmor(ArmorItem.Type.CHESTPLATE, VANILLA_NETHERITE))
                                     .component(ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT)
                     )
             );
@@ -185,7 +202,7 @@ public class ModItems {
             ITEMS.register("frost_metal_leggings",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.FROST_METAL), ArmorItem.Type.LEGGINGS,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.LEGGINGS.getDurability(33))
+                                    .durability(vanillaArmor(ArmorItem.Type.LEGGINGS, VANILLA_NETHERITE))
                                     .component(ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT)
                     )
             );
@@ -194,18 +211,18 @@ public class ModItems {
             ITEMS.register("frost_metal_boots",
                     () -> new FrostMetalBootsItem(ModArmorMaterials.holder(ModArmorMaterials.FROST_METAL), ArmorItem.Type.BOOTS,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.BOOTS.getDurability(33))
+                                    .durability(vanillaArmor(ArmorItem.Type.BOOTS, VANILLA_NETHERITE))
                                     .component(ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT)
                     )
             );
 
-    // ===== 盔甲：超限合金套 =====
+    // ===== 盔甲：余烬金属套（下界合金护甲耐久）=====
 
     public static final DeferredItem<ArmorItem> EMBER_METAL_HELMET =
             ITEMS.register("ember_metal_helmet",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.EMBER_METAL), ArmorItem.Type.HELMET,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.HELMET.getDurability(407))
+                                    .durability(vanillaArmor(ArmorItem.Type.HELMET, VANILLA_NETHERITE))
                                     .fireResistant()
                                     .component(ModComponents.HEAT_INSULATION.get(), HeatInsulationComponent.INSTANCE)
                     )
@@ -215,7 +232,7 @@ public class ModItems {
             ITEMS.register("ember_metal_chestplate",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.EMBER_METAL), ArmorItem.Type.CHESTPLATE,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.CHESTPLATE.getDurability(407))
+                                    .durability(vanillaArmor(ArmorItem.Type.CHESTPLATE, VANILLA_NETHERITE))
                                     .fireResistant()
                                     .component(ModComponents.BARRIER_I.get(), BarrierIComponent.INSTANCE)
                     )
@@ -225,7 +242,7 @@ public class ModItems {
             ITEMS.register("ember_metal_leggings",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.EMBER_METAL), ArmorItem.Type.LEGGINGS,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.LEGGINGS.getDurability(407))
+                                    .durability(vanillaArmor(ArmorItem.Type.LEGGINGS, VANILLA_NETHERITE))
                                     .fireResistant()
                                     .component(ModComponents.EMBER_REGEN.get(), EmberRegenComponent.INSTANCE)
                     )
@@ -235,19 +252,18 @@ public class ModItems {
             ITEMS.register("ember_metal_boots",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.EMBER_METAL), ArmorItem.Type.BOOTS,
                             new Item.Properties()
-                                    .durability(ArmorItem.Type.BOOTS.getDurability(407))
+                                    .durability(vanillaArmor(ArmorItem.Type.BOOTS, VANILLA_NETHERITE))
                                     .fireResistant()
                                     .component(ModComponents.LAVA_WALKER.get(), LavaWalkerComponent.INSTANCE)
                     )
             );
 
-    // ===== 盔甲：浮霜金属套 =====
+    // ===== 盔甲：超限合金套（无法破坏）=====
 
     public static final DeferredItem<ArmorItem> TRANSCENDIUM_HELMET =
             ITEMS.register("transcendium_helmet",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.TRANSCENDIUM), ArmorItem.Type.HELMET,
-                            new Item.Properties()
-                                    .durability(ArmorItem.Type.HELMET.getDurability(407))
+                            unbreakableArmor()
                                     .fireResistant()
                                     .rarity(net.minecraft.world.item.Rarity.EPIC)
                                     .component(ModComponents.GLOWING_VISION.get(), GlowingVisionComponent.DEFAULT)
@@ -257,8 +273,7 @@ public class ModItems {
     public static final DeferredItem<ArmorItem> TRANSCENDIUM_CHESTPLATE =
             ITEMS.register("transcendium_chestplate",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.TRANSCENDIUM), ArmorItem.Type.CHESTPLATE,
-                            new Item.Properties()
-                                    .durability(ArmorItem.Type.CHESTPLATE.getDurability(407))
+                            unbreakableArmor()
                                     .fireResistant()
                                     .rarity(net.minecraft.world.item.Rarity.EPIC)
                                     .component(ModComponents.BARRIER_II.get(), BarrierIIComponent.INSTANCE)
@@ -268,8 +283,7 @@ public class ModItems {
     public static final DeferredItem<ArmorItem> TRANSCENDIUM_LEGGINGS =
             ITEMS.register("transcendium_leggings",
                     () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.TRANSCENDIUM), ArmorItem.Type.LEGGINGS,
-                            new Item.Properties()
-                                    .durability(ArmorItem.Type.LEGGINGS.getDurability(407))
+                            unbreakableArmor()
                                     .fireResistant()
                                     .rarity(net.minecraft.world.item.Rarity.EPIC)
                                     .component(ModComponents.NEUTRON_BARRIER.get(), NeutronBarrierComponent.INSTANCE)
@@ -279,8 +293,7 @@ public class ModItems {
     public static final DeferredItem<ArmorItem> TRANSCENDIUM_BOOTS =
             ITEMS.register("transcendium_boots",
                     () -> new TranscendiumBootsItem(ModArmorMaterials.holder(ModArmorMaterials.TRANSCENDIUM), ArmorItem.Type.BOOTS,
-                            new Item.Properties()
-                                    .durability(ArmorItem.Type.BOOTS.getDurability(407))
+                            unbreakableArmor()
                                     .fireResistant()
                                     .rarity(net.minecraft.world.item.Rarity.EPIC)
                     )

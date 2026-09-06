@@ -61,7 +61,7 @@ public abstract class EmberSmithingMenuMixin {
         CreateTemplateMode m = t.get(ModComponents.CREATE_TEMPLATE_MODE.get());
         if (m == null) return;
         cir.setReturnValue(switch (m.mode()) {
-            case "delta" -> 8; case "gamma" -> 4; case "beta" -> 2; default -> 8;
+            case "delta" -> 8; case "gamma" -> 4; case "beta" -> 2; default -> 0;
         });
     }
 
@@ -74,8 +74,9 @@ public abstract class EmberSmithingMenuMixin {
         CreateTemplateMode m = t.get(ModComponents.CREATE_TEMPLATE_MODE.get());
         if (m == null) { cir.setReturnValue(false); return; }
         int size = switch (m.mode()) {
-            case "delta" -> 8; case "gamma" -> 4; case "beta" -> 2; default -> 8;
+            case "delta" -> 8; case "gamma" -> 4; case "beta" -> 2; default -> 0;
         };
+        if (size == 0) { cir.setReturnValue(false); return; }
         for (int i = 0; i < size; i++) {
             if (self.getSlot(2 + i).getItem().isEmpty()) { cir.setReturnValue(false); return; }
         }

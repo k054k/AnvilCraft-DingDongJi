@@ -241,7 +241,7 @@ public class ModEvents {
         }
         if (stack.is(ModItems.TRANSCENDIUM_BOOTS.get())) {
             String key = com.dingdongji.mod.input.ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
-            descLines.add(Component.literal(String.format("蹈虚：按 [%s] 键开启创造飞行，与飘升机同时穿戴时提升飞行速度", key)).setStyle(TRANSCENDIUM_STYLE));
+            descLines.add(Component.literal(String.format("蹈虚：穿戴后即可创造飞行，按 [%s] 可开关；与飘升机同时穿戴时提升飞行速度", key)).setStyle(TRANSCENDIUM_STYLE));
         }
 
         // 偏执

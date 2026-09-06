@@ -20,9 +20,13 @@ public abstract class BaseMultipleToOneSmithingRecipeMixin {
         CreateTemplateMode mode = template.get(ModComponents.CREATE_TEMPLATE_MODE.get());
         if (mode == null) mode = CreateTemplateMode.DEFAULT;
 
-        if (CreateTemplateMode.ALPHA.equals(mode)) {
-            return;
+        // α 万能；β/γ/δ 对应二/四/八合一。此处只放行模板识别，
+        // 具体槽位数由 EmberSmithingMenuMixin.getInputSize 按 mode 决定。
+        if (CreateTemplateMode.ALPHA.equals(mode)
+                || CreateTemplateMode.BETA.equals(mode)
+                || CreateTemplateMode.GAMMA.equals(mode)
+                || CreateTemplateMode.DELTA.equals(mode)) {
+            cir.setReturnValue(true);
         }
-        cir.setReturnValue(true);
     }
 }

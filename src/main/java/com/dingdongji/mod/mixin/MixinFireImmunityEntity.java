@@ -12,13 +12,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * 超限合金头盔：屏蔽 in_fire 状态（着火动画/火焰视觉效果）。
- * 拦截 setRemainingFireTicks，对超限头盔玩家始终设为 0。
+ * 拦截 setRemainingFireTicks：着火（>0）直接取消，熄灭（<=0）放行。
  */
 @Mixin(Entity.class)
 public abstract class MixinFireImmunityEntity {
 
     @Inject(method = "setRemainingFireTicks", at = @At("HEAD"), cancellable = true)
     private void ddj$blockFireTicks(int fireTicks, CallbackInfo ci) {
+        if (fireTicks <= 0) return; // 允许熄灭（clearFire / 进水）
         if ((Object) this instanceof Player player) {
             ItemStack helmet = player.getItemBySlot(EquipmentSlot.HEAD);
             if (helmet.is(ModItems.TRANSCENDIUM_HELMET.get())) {

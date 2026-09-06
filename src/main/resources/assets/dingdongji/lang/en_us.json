@@ -64,11 +64,11 @@
   "tooltip.dingdongji.barrier_ii": "Barrier II: Greatly reduces most damage, ignores magic/void/contact/explosion damage; Emergency heal at low HP, clears all negative effects",
   "tooltip.dingdongji.barrier_ii.cooldown": "Emergency heal cooling down: %ds",
   "tooltip.dingdongji.barrier_ii.ready": "Emergency heal ready",
-  "tooltip.dingdongji.stride_void": "Stride Void: Can be combined with IonoCraft Backpack to enable creative flight without power grid",
+  "tooltip.dingdongji.stride_void": "Stride Void: Grants creative flight while worn, no power grid required; faster when worn with an Ionocraft Backpack",
   "tooltip.dingdongji.meaningless": "Meaningless: Disables all enchantments except specific ones [Hold Left Shift]",
   "tooltip.dingdongji.meaningless.conversion": "And converts them into armor and toughness",
   "tooltip.dingdongji.meaningless.shifting": "Meaningless: Disables all enchantments except specific ones (%s) and converts them into armor and toughness",
   "tooltip.dingdongji.property.meaningless.curse": "all curses",
   "screen.anvilcraft.cfa.class.special.krypton.golden_ji_planet": "Golden Ji Planet",
-  "tooltip.dingdongji.stride_void_enhanced": "Stride Void: Press [%s] to toggle creative flight"
+  "tooltip.dingdongji.stride_void_enhanced": "Stride Void: Grants creative flight while worn, press [%s] to toggle"
 }

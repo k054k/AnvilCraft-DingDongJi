@@ -21,20 +21,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class SmithingMenuMixin {
 
     @Unique
-    private boolean dingdongji$wasCreateTemplate = false;
+    private ItemStack dingdongji$savedCreateTemplate = ItemStack.EMPTY;
 
     @Inject(method = "onTake", at = @At("HEAD"))
     private void dingdongji$onTakeHead(Player player, ItemStack stack, CallbackInfo ci) {
         SmithingMenu self = (SmithingMenu) (Object) this;
-        this.dingdongji$wasCreateTemplate = ModItems.isCreateTemplate(self.getSlot(0).getItem());
+        ItemStack template = self.getSlot(0).getItem();
+        // 必须拷贝整份物品（含 mode 组件），否则合成后会掉回 α
+        this.dingdongji$savedCreateTemplate = ModItems.isCreateTemplate(template)
+                ? template.copy()
+                : ItemStack.EMPTY;
     }
 
     @Inject(method = "onTake", at = @At("TAIL"))
     private void dingdongji$onTakeTail(Player player, ItemStack stack, CallbackInfo ci) {
-        if (this.dingdongji$wasCreateTemplate) {
+        if (!this.dingdongji$savedCreateTemplate.isEmpty()) {
             SmithingMenu self = (SmithingMenu) (Object) this;
-            self.getSlot(0).set(new ItemStack(ModItems.CREATE_TEMPLATE.get(), 1));
+            self.getSlot(0).set(this.dingdongji$savedCreateTemplate.copy());
         }
-        this.dingdongji$wasCreateTemplate = false;
+        this.dingdongji$savedCreateTemplate = ItemStack.EMPTY;
     }
 }
