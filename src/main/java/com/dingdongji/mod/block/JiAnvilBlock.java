@@ -1,6 +1,7 @@
 package com.dingdongji.mod.block;
 
 import com.dingdongji.mod.inventory.JiAnvilMenu;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -8,84 +9,65 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AnvilBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Fallable;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import java.util.List;
-
 public class JiAnvilBlock extends AnvilBlock {
-    private static final Style GOLD_STYLE = Style.EMPTY.withColor(0xF7BE00);
+   private static final Style GOLD_STYLE = Style.EMPTY.withColor(16236032);
+   private static final VoxelShape SHAPE_NS = Shapes.or(
+      Block.box(2.0, 0.0, 2.0, 14.0, 4.0, 14.0), new VoxelShape[]{Block.box(5.0, 4.0, 4.0, 11.0, 10.0, 12.0), Block.box(3.0, 10.0, 0.0, 13.0, 16.0, 16.0)}
+   );
+   private static final VoxelShape SHAPE_EW = Shapes.or(
+      Block.box(2.0, 0.0, 2.0, 14.0, 4.0, 14.0), new VoxelShape[]{Block.box(4.0, 4.0, 5.0, 12.0, 10.0, 11.0), Block.box(0.0, 10.0, 3.0, 16.0, 16.0, 13.0)}
+   );
 
-    // 注意：FACING 由父类 AnvilBlock（铁砧工艺通过 Mixin 注入）提供，子类不可重复添加
+   public JiAnvilBlock(Properties properties) {
+      super(properties);
+   }
 
-    // 北/南方向：顶部沿 Z 轴全长（0~16）
-    private static final VoxelShape SHAPE_NS = Shapes.or(
-        Block.box(2, 0, 2, 14, 4, 14),
-        Block.box(5, 4, 4, 11, 10, 12),
-        Block.box(3, 10, 0, 13, 16, 16)
-    );
+   public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+      Direction facing = (Direction)state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+      return facing != Direction.NORTH && facing != Direction.SOUTH ? SHAPE_EW : SHAPE_NS;
+   }
 
-    // 东/西方向：顶部沿 X 轴全长（0~16），中部与底座旋转 90°
-    private static final VoxelShape SHAPE_EW = Shapes.or(
-        Block.box(2, 0, 2, 14, 4, 14),
-        Block.box(4, 4, 5, 12, 10, 11),
-        Block.box(0, 10, 3, 16, 16, 13)
-    );
+   public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+      Direction facing = (Direction)state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+      return facing != Direction.NORTH && facing != Direction.SOUTH ? SHAPE_EW : SHAPE_NS;
+   }
 
-    public JiAnvilBlock(Properties properties) {
-        super(properties);
-    }
+   protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+      if (level.isClientSide) {
+         return InteractionResult.SUCCESS;
+      } else {
+         player.openMenu(
+            new SimpleMenuProvider(
+               (id, inventory, p) -> new JiAnvilMenu(id, inventory, ContainerLevelAccess.create(level, pos)), Component.translatable("container.repair")
+            )
+         );
+         player.awardStat(Stats.INTERACT_WITH_ANVIL);
+         return InteractionResult.CONSUME;
+      }
+   }
 
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        Direction facing = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING);
-        return (facing == Direction.NORTH || facing == Direction.SOUTH) ? SHAPE_NS : SHAPE_EW;
-    }
+   public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+      tooltip.add(Component.translatable("tooltip.dingdongji.ji_anvil.desc").setStyle(GOLD_STYLE));
+   }
 
-    @Override
-    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        Direction facing = state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING);
-        return (facing == Direction.NORTH || facing == Direction.SOUTH) ? SHAPE_NS : SHAPE_EW;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) return InteractionResult.SUCCESS;
-        player.openMenu(new SimpleMenuProvider(
-                (id, inventory, p) -> new JiAnvilMenu(id, inventory, ContainerLevelAccess.create(level, pos)),
-                Component.translatable("container.repair")
-        ));
-        player.awardStat(Stats.INTERACT_WITH_ANVIL);
-        return InteractionResult.CONSUME;
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable(
-                "tooltip.dingdongji.ji_anvil.desc"
-        ).setStyle(GOLD_STYLE));
-    }
-
-    /**
-     * 覆写 onLand 以静默铁砧落地音效。
-     * 鸡叫声由 FallingBlockEntityMixin 播放，这里不做任何事。
-     */
-    @Override
-    public void onLand(Level level, BlockPos pos, BlockState state, BlockState replacedState, FallingBlockEntity entity) {
-        // 不调用 super.onLand()，避免播放铁砧落地音效
-    }
+   public void onLand(Level level, BlockPos pos, BlockState state, BlockState replacedState, FallingBlockEntity entity) {
+   }
 }

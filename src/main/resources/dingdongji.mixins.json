@@ -17,18 +17,33 @@
     "FallingBlockEntityMixin",
     "RangedAttributeMixin",
     "GravityManagerMixin",
+    "EntityAirDataAccessor",
     "MixinAdjacentSmithingMenu",
     "MixinTranscendenceSmithingMenu",
     "MixinSmithingTemplateUsable",
     "MixinLivingEntityHurt",
     "MixinFireImmunityEntity",
-    "EntityCanTrampleMixin"
+    "EntityCanTrampleMixin",
+    "MixinBlockFriction",
+    "MixinCanStandOnFluid",
+    "MixinEntityBlockSlowdown",
+    "MixinEntityGravity",
+    "MixinAtmosphereDrag",
+    "MixinCanFreeze"
   ],
   "client": [
     "AdjacentSmithingScreenMixin",
     "TranscendenceSmithingScreenMixin",
+    "AccessorHumanoidArmorLayer",
+    "AccessorLivingEntityRenderer",
     "MixinLavaVision",
-    "MixinFireOverlay"
+    "MixinFireOverlay",
+    "MixinTranscendiumFog",
+    "MixinGuiOverlays",
+    "MixinLightTextureNightVision",
+    "MixinNightVisionScale",
+    "MixinSpriteContentsTickerBind",
+    "MixinSpriteTickerPhase"
   ],
   "injectors": {
     "defaultRequire": 0

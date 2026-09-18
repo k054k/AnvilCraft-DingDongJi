@@ -1,5 +1,7 @@
 package com.dingdongji.mod.client.screen;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -7,153 +9,166 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import org.joml.Vector2f;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * 简洁轮盘 — 无圆环、无发光，仅显示物品图标和文字标签。
- */
 public class WheelWidget extends AbstractWidget {
+   private static final float RADIUS = 48.0F;
+   private static final int ANIM_MS = 150;
+   private static final int CLOSE_MS = 100;
+   private final Minecraft mc = Minecraft.getInstance();
+   private final Vector2f center;
+   private final List<WheelWidget.Section> sections = new ArrayList<>();
+   private long openTime;
+   private boolean opening = false;
+   private boolean closing = false;
+   private int selectedIndex = 0;
 
-    private static final float RADIUS = 48f;
-    private static final int ANIM_MS = 150;
-    private static final int CLOSE_MS = 100;
+   public WheelWidget(int x, int y, int size, List<WheelWidget.SectionBuilder> builders) {
+      super(x, y, size, size, Component.empty());
+      this.center = new Vector2f((float)x + (float)size / 2.0F, (float)y + (float)size / 2.0F);
+      float degreeEach = 360.0F / (float)builders.size();
 
-    private final Minecraft mc = Minecraft.getInstance();
-    private final Vector2f center;
-    private final List<Section> sections = new ArrayList<>();
+      for (int i = 0; i < builders.size(); i++) {
+         WheelWidget.SectionBuilder b = builders.get(i);
+         float rad = (float)Math.toRadians((double)(degreeEach * (float)i));
+         float sx = this.center.x + (float)Math.sin((double)rad) * 48.0F;
+         float sy = this.center.y - (float)Math.cos((double)rad) * 48.0F;
+         this.sections.add(new WheelWidget.Section(b.name(), b.renderer(), new Vector2f(sx, sy)));
+      }
+   }
 
-    private long openTime;
-    private boolean opening = false;
-    private boolean closing = false;
-    private int selectedIndex = 0;
+   public WheelWidget setCurrentIndex(int index) {
+      if (index >= 0 && index < this.sections.size()) {
+         this.selectedIndex = index;
+      }
 
-    public record Section(Component name, SectionRenderer renderer, Vector2f pos) {}
+      return this;
+   }
 
-    @FunctionalInterface
-    public interface SectionRenderer {
-        void render(GuiGraphics graphics, int x, int y, int w, int h);
-    }
+   public int getSelectedIndex() {
+      return this.selectedIndex;
+   }
 
-    public WheelWidget(int x, int y, int size, List<SectionBuilder> builders) {
-        super(x, y, size, size, Component.empty());
-        this.center = new Vector2f(x + size / 2f, y + size / 2f);
+   public boolean isClosing() {
+      return this.closing;
+   }
 
-        float degreeEach = 360f / builders.size();
-        for (int i = 0; i < builders.size(); i++) {
-            SectionBuilder b = builders.get(i);
-            float rad = (float) Math.toRadians(degreeEach * i);
-            float sx = center.x + (float) Math.sin(rad) * RADIUS;
-            float sy = center.y - (float) Math.cos(rad) * RADIUS;
-            sections.add(new Section(b.name(), b.renderer(), new Vector2f(sx, sy)));
-        }
-    }
+   public void open() {
+      this.openTime = System.currentTimeMillis();
+      this.opening = true;
+      this.closing = false;
+   }
 
-    public WheelWidget setCurrentIndex(int index) {
-        if (index >= 0 && index < sections.size()) this.selectedIndex = index;
-        return this;
-    }
+   public int close() {
+      if (this.closing) {
+         return this.selectedIndex;
+      } else {
+         this.openTime = System.currentTimeMillis();
+         this.opening = false;
+         this.closing = true;
+         return this.selectedIndex;
+      }
+   }
 
-    public int getSelectedIndex() { return selectedIndex; }
-    public boolean isClosing() { return closing; }
+   public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+      if (this.closing) {
+         return false;
+      } else {
+         if (scrollY > 0.0) {
+            this.selectedIndex = (this.selectedIndex + 1) % this.sections.size();
+         } else if (scrollY < 0.0) {
+            this.selectedIndex = (this.selectedIndex - 1 + this.sections.size()) % this.sections.size();
+         }
 
-    public void open() {
-        this.openTime = System.currentTimeMillis();
-        this.opening = true;
-        this.closing = false;
-    }
+         return true;
+      }
+   }
 
-    public int close() {
-        if (closing) return selectedIndex;
-        this.openTime = System.currentTimeMillis();
-        this.opening = false;
-        this.closing = true;
-        return selectedIndex;
-    }
+   private void updateHover(double mouseX, double mouseY) {
+      if (!this.closing) {
+         float bestDist = Float.MAX_VALUE;
+         int bestIdx = -1;
 
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (closing) return false;
-        if (scrollY > 0) selectedIndex = (selectedIndex + 1) % sections.size();
-        else if (scrollY < 0) selectedIndex = (selectedIndex - 1 + sections.size()) % sections.size();
-        return true;
-    }
-
-    private void updateHover(double mouseX, double mouseY) {
-        if (closing) return;
-        float bestDist = Float.MAX_VALUE;
-        int bestIdx = -1;
-        for (int i = 0; i < sections.size(); i++) {
-            Section s = sections.get(i);
-            float dx = (float) mouseX - s.pos().x;
-            float dy = (float) mouseY - s.pos().y;
+         for (int i = 0; i < this.sections.size(); i++) {
+            WheelWidget.Section s = this.sections.get(i);
+            float dx = (float)mouseX - s.pos().x;
+            float dy = (float)mouseY - s.pos().y;
             float dist = dx * dx + dy * dy;
             if (dist < bestDist) {
-                bestDist = dist;
-                bestIdx = i;
+               bestDist = dist;
+               bestIdx = i;
             }
-        }
-        if (bestIdx >= 0 && bestDist < 400) { // 20px 半径
-            selectedIndex = bestIdx;
-        }
-    }
+         }
 
-    @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        updateHover(mouseX, mouseY);
-        long elapsed = System.currentTimeMillis() - openTime;
+         if (bestIdx >= 0 && bestDist < 400.0F) {
+            this.selectedIndex = bestIdx;
+         }
+      }
+   }
 
-        float progress;
-        if (closing) {
-            progress = Math.max(0, 1f - elapsed / (float) CLOSE_MS);
-            progress = easeOutCubic(progress);
-            renderSections(guiGraphics, progress);
-            if (progress <= 0) mc.setScreen(null);
-            return;
-        }
-        if (!opening) return;
-        progress = Math.min(1f, elapsed / (float) ANIM_MS);
-        progress = easeOutCubic(progress);
-        renderSections(guiGraphics, progress);
-    }
+   protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+      this.updateHover((double)mouseX, (double)mouseY);
+      long elapsed = System.currentTimeMillis() - this.openTime;
+      if (this.closing) {
+         float progress = Math.max(0.0F, 1.0F - (float)elapsed / 100.0F);
+         progress = easeOutCubic(progress);
+         this.renderSections(guiGraphics, progress);
+         if (progress <= 0.0F) {
+            this.mc.setScreen(null);
+         }
+      } else if (this.opening) {
+         float progress = Math.min(1.0F, (float)elapsed / 150.0F);
+         progress = easeOutCubic(progress);
+         this.renderSections(guiGraphics, progress);
+      }
+   }
 
-    private static float easeOutCubic(float t) {
-        return (float) (1 - Math.pow(1 - t, 3));
-    }
+   private static float easeOutCubic(float t) {
+      return (float)(1.0 - Math.pow((double)(1.0F - t), 3.0));
+   }
 
-    private void renderSections(GuiGraphics guiGraphics, float progress) {
-        for (int i = 0; i < sections.size(); i++) {
-            Section s = sections.get(i);
-            float sx = (s.pos().x - center.x) * progress + center.x;
-            float sy = (s.pos().y - center.y) * progress + center.y;
-            boolean hovered = (i == selectedIndex);
+   private void renderSections(GuiGraphics guiGraphics, float progress) {
+      for (int i = 0; i < this.sections.size(); i++) {
+         WheelWidget.Section s = this.sections.get(i);
+         float sx = (s.pos().x - this.center.x) * progress + this.center.x;
+         float sy = (s.pos().y - this.center.y) * progress + this.center.y;
+         boolean hovered = i == this.selectedIndex;
+         s.renderer().render(guiGraphics, (int)sx - 8, (int)sy - 8, 16, 16);
+         String label = s.name().getString();
+         int tw = this.mc.font.width(label);
+         float tx = sx - (float)tw / 2.0F;
+         float ty = sy + 11.0F;
+         int alpha = Math.min(255, (int)(progress * 255.0F));
+         int color = hovered ? 16777215 : 11184810;
+         int argb = alpha << 24 | color & 16777215;
+         guiGraphics.drawString(this.mc.font, label, (int)tx, (int)ty, argb, false);
+      }
+   }
 
-            // 物品图标
-            s.renderer().render(guiGraphics, (int) sx - 8, (int) sy - 8, 16, 16);
+   protected void updateWidgetNarration(NarrationElementOutput output) {
+   }
 
-            // 文字标签
-            String label = s.name().getString();
-            int tw = mc.font.width(label);
-            float tx = sx - tw / 2f;
-            float ty = sy + 11;
-            int alpha = Math.min(255, (int) (progress * 255));
-            int color = hovered ? 0xFFFFFF : 0xAAAAAA;
-            int argb = (alpha << 24) | (color & 0x00FFFFFF);
-            guiGraphics.drawString(mc.font, label, (int) tx, (int) ty, argb, false);
-        }
-    }
+   public static record Section(Component name, WheelWidget.SectionRenderer renderer, Vector2f pos) {
+   }
 
-    public static class SectionBuilder {
-        private final Component name;
-        private final SectionRenderer renderer;
-        public SectionBuilder(Component name, SectionRenderer renderer) {
-            this.name = name;
-            this.renderer = renderer;
-        }
-        public Component name() { return name; }
-        public SectionRenderer renderer() { return renderer; }
-    }
+   public static class SectionBuilder {
+      private final Component name;
+      private final WheelWidget.SectionRenderer renderer;
 
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {}
+      public SectionBuilder(Component name, WheelWidget.SectionRenderer renderer) {
+         this.name = name;
+         this.renderer = renderer;
+      }
+
+      public Component name() {
+         return this.name;
+      }
+
+      public WheelWidget.SectionRenderer renderer() {
+         return this.renderer;
+      }
+   }
+
+   @FunctionalInterface
+   public interface SectionRenderer {
+      void render(GuiGraphics var1, int var2, int var3, int var4, int var5);
+   }
 }

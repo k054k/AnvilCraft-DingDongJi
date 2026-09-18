@@ -2,83 +2,81 @@ package com.dingdongji.mod.item.component;
 
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
-/**
- * 创造模板的当前模式。
- */
 public record CreateTemplateMode(String mode) {
-    public static final Codec<CreateTemplateMode> CODEC = Codec.STRING.xmap(CreateTemplateMode::new, CreateTemplateMode::mode);
-    public static final StreamCodec<ByteBuf, CreateTemplateMode> STREAM_CODEC =
-            ByteBufCodecs.STRING_UTF8.map(CreateTemplateMode::new, CreateTemplateMode::mode);
+   public static final Codec<CreateTemplateMode> CODEC = Codec.STRING.xmap(CreateTemplateMode::new, CreateTemplateMode::mode);
+   public static final StreamCodec<ByteBuf, CreateTemplateMode> STREAM_CODEC = ByteBufCodecs.STRING_UTF8.map(CreateTemplateMode::new, CreateTemplateMode::mode);
+   public static final CreateTemplateMode ALPHA = new CreateTemplateMode("alpha");
+   public static final CreateTemplateMode BETA = new CreateTemplateMode("beta");
+   public static final CreateTemplateMode GAMMA = new CreateTemplateMode("gamma");
+   public static final CreateTemplateMode DELTA = new CreateTemplateMode("delta");
+   public static final CreateTemplateMode EPSILON = new CreateTemplateMode("epsilon");
+   public static final CreateTemplateMode ZETA = new CreateTemplateMode("zeta");
+   public static final CreateTemplateMode DEFAULT = ALPHA;
 
-    // α 普通模板（可替代所有锻造模板）
-    public static final CreateTemplateMode ALPHA = new CreateTemplateMode("alpha");
-    // β 二合一锻造模板
-    public static final CreateTemplateMode BETA = new CreateTemplateMode("beta");
-    // γ 四合一锻造模板
-    public static final CreateTemplateMode GAMMA = new CreateTemplateMode("gamma");
-    // δ 八合一锻造模板
-    public static final CreateTemplateMode DELTA = new CreateTemplateMode("delta");
-    // ε 嬗变模板（1.6）
-    public static final CreateTemplateMode EPSILON = new CreateTemplateMode("epsilon");
-    // ζ 形变模板（1.6）
-    public static final CreateTemplateMode ZETA = new CreateTemplateMode("zeta");
+   public CreateTemplateMode next() {
+      String var1 = this.mode;
 
-    public static final CreateTemplateMode DEFAULT = ALPHA;
+      return switch (var1) {
+         case "alpha" -> BETA;
+         case "beta" -> GAMMA;
+         case "gamma" -> DELTA;
+         case "delta" -> hasEpsilonZeta() ? EPSILON : ALPHA;
+         case "epsilon" -> hasEpsilonZeta() ? ZETA : ALPHA;
+         case "zeta" -> ALPHA;
+         default -> ALPHA;
+      };
+   }
 
-    public CreateTemplateMode next() {
-        return switch (mode) {
-            case "alpha" -> BETA;
-            case "beta" -> GAMMA;
-            case "gamma" -> DELTA;
-            case "delta" -> hasEpsilonZeta() ? EPSILON : ALPHA;
-            case "epsilon" -> hasEpsilonZeta() ? ZETA : ALPHA;
-            case "zeta" -> ALPHA;
-            default -> ALPHA;
-        };
-    }
+   private static boolean hasEpsilonZeta() {
+      Item item = (Item)BuiltInRegistries.ITEM.get(ResourceLocation.parse("anvilcraft:permutation_smithing_template"));
+      return item != Items.AIR;
+   }
 
-    private static boolean hasEpsilonZeta() {
-        // 检查铁砧工艺 1.6 的模板物品是否存在
-        var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
-                net.minecraft.resources.ResourceLocation.parse("anvilcraft:permutation_smithing_template"));
-        return item != net.minecraft.world.item.Items.AIR;
-    }
+   public String getDisplayName() {
+      String var1 = this.mode;
 
-    public String getDisplayName() {
-        return switch (mode) {
-            case "alpha" -> "锻造模板-\u03B1";
-            case "beta" -> "锻造模板-\u03B2";
-            case "gamma" -> "锻造模板-\u03B3";
-            case "delta" -> "锻造模板-\u03B4";
-            case "epsilon" -> "锻造模板-\u03B5";
-            case "zeta" -> "锻造模板-\u03B6";
-            default -> "锻造模板-\u03B1";
-        };
-    }
+      return switch (var1) {
+         case "alpha" -> "锻造模板-α";
+         case "beta" -> "锻造模板-β";
+         case "gamma" -> "锻造模板-γ";
+         case "delta" -> "锻造模板-δ";
+         case "epsilon" -> "锻造模板-ε";
+         case "zeta" -> "锻造模板-ζ";
+         default -> "锻造模板-α";
+      };
+   }
 
-    public String getDescription() {
-        return switch (mode) {
-            case "alpha" -> "普通模板";
-            case "beta" -> "二合一锻造模板";
-            case "gamma" -> "四合一锻造模板";
-            case "delta" -> "八合一锻造模板";
-            case "epsilon" -> "嬗变模板";
-            case "zeta" -> "形变模板";
-            default -> "可替代所有锻造模板";
-        };
-    }
+   public String getDescription() {
+      String var1 = this.mode;
 
-    public String getTargetTemplateId() {
-        return switch (mode) {
-            case "beta" -> "anvilcraft:two_to_one_smithing_template";
-            case "gamma" -> "anvilcraft:four_to_one_smithing_template";
-            case "delta" -> "anvilcraft:eight_to_one_smithing_template";
-            case "epsilon" -> "anvilcraft:permutation_smithing_template";
-            case "zeta" -> "anvilcraft:deformation_smithing_template";
-            default -> null; // alpha: all templates
-        };
-    }
+      return switch (var1) {
+         case "alpha" -> "普通模板";
+         case "beta" -> "二合一锻造模板";
+         case "gamma" -> "四合一锻造模板";
+         case "delta" -> "八合一锻造模板";
+         case "epsilon" -> "嬗变模板";
+         case "zeta" -> "形变模板";
+         default -> "可替代所有锻造模板";
+      };
+   }
+
+   public String getTargetTemplateId() {
+      String var1 = this.mode;
+
+      return switch (var1) {
+         case "beta" -> "anvilcraft:two_to_one_smithing_template";
+         case "gamma" -> "anvilcraft:four_to_one_smithing_template";
+         case "delta" -> "anvilcraft:eight_to_one_smithing_template";
+         case "epsilon" -> "anvilcraft:permutation_smithing_template";
+         case "zeta" -> "anvilcraft:deformation_smithing_template";
+         default -> null;
+      };
+   }
 }
