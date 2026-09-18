@@ -6,6 +6,5 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
 public class ModBlockTags {
-    public static final TagKey<Block> CANT_BROKEN_ANVIL =
-            TagKey.create(Registries.BLOCK, KryptonMod.modLoc("cant_broken_anvil"));
+   public static final TagKey<Block> CANT_BROKEN_ANVIL = TagKey.create(Registries.BLOCK, KryptonMod.modLoc("cant_broken_anvil"));
 }
