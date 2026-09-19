@@ -1,4 +1,6 @@
 {
+  "dingdongji.configuration.glowBandEnabled": "Armor Glow Band",
+  "dingdongji.configuration.glowBandEnabled.tooltip": "The glowing band overlay on the metal armor sets. Turn this off if the band renders black or invisible on your GPU.",
   "block.dingdongji.ji_anvil": "Ji Anvil",
   "block.dingdongji.keji_block": "Keji Block",
   "item.dingdongji.ji_upgrade": "Template",

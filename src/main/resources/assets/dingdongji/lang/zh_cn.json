@@ -1,4 +1,6 @@
 {
+  "dingdongji.configuration.glowBandEnabled": "盔甲光带",
+  "dingdongji.configuration.glowBandEnabled.tooltip": "金属盔甲套装的发光光带。若你的显卡上光带显示为黑色或不显示，请关闭此项。",
   "block.dingdongji.ji_anvil": "叽砧",
   "block.dingdongji.keji_block": "叽块",
   "item.dingdongji.ji_upgrade": "锻造模板",
