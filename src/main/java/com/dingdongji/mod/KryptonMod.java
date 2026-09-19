@@ -16,8 +16,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 
 @Mod("dingdongji")
@@ -28,7 +32,8 @@ public class KryptonMod {
       return ResourceLocation.fromNamespaceAndPath("dingdongji", path);
    }
 
-   public KryptonMod(IEventBus modEventBus) {
+   public KryptonMod(IEventBus modEventBus, ModContainer container) {
+      container.registerConfig(ModConfig.Type.CLIENT, ModClientConfig.SPEC);
       ModBlocks.BLOCKS.register(modEventBus);
       ModParticles.PARTICLES.register(modEventBus);
       ModItems.ITEMS.register(modEventBus);
@@ -39,6 +44,7 @@ public class KryptonMod {
       modEventBus.addListener(ModifyDefaultComponentsHandler::onModifyDefaultComponents);
       if (FMLEnvironment.dist == Dist.CLIENT) {
          ClientModInit.register(modEventBus);
+         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
       }
 
       modEventBus.addListener(ModNetwork::register);

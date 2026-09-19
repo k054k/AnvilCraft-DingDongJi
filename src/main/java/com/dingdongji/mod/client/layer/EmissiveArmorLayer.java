@@ -1,5 +1,6 @@
 package com.dingdongji.mod.client.layer;
 
+import com.dingdongji.mod.ModClientConfig;
 import com.dingdongji.mod.client.AfterimageManager;
 import com.dingdongji.mod.client.GlowPhaseTracker;
 import com.dingdongji.mod.item.ModItems;
@@ -90,6 +91,10 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       float netHeadYaw,
       float headPitch
    ) {
+      if (!ModClientConfig.glowBandEnabled()) {
+         return;
+      }
+
       if (!AfterimageManager.isRenderingAfterimage()) {
          float breathTicks = (float)entity.level().getGameTime() + partialTicks;
          this.renderPiece(pose, buffers, entity, EquipmentSlot.CHEST, breathTicks);
@@ -114,6 +119,12 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
                ResourceLocation armorTexture = ClientHooks.getArmorTexture(entity, stack, layer, inner, slot);
                ResourceLocation glowTexture = toGlowLocation(armorTexture);
                VertexConsumer consumer = buffers.getBuffer(GlowArmorRenderType.glowArmor(glowTexture));
+               // Vanilla eyes-layer recipe (spider / enderman): redraw the exact
+               // same model with the identical pose. Bit-identical vertices give
+               // bit-identical rasterized depth, so the LEQUAL depth test always
+               // passes - no z-fighting, no dropped pixels while limbs swing, no
+               // offset seam at any angle. Any scaling would break bit equality
+               // and reintroduce all three artifacts, hence deliberately none.
                model.renderToBuffer(pose, consumer, 15728880, OverlayTexture.NO_OVERLAY, color);
             }
          }
