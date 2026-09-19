@@ -8,7 +8,7 @@ java {
 }
 
 base {
-    archivesName = 'anvilcraft-dingdongji'
+    archivesName = 'anvilcraft_dingdongji'
 }
 
 group = 'com.dingdongji'

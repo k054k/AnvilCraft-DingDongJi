@@ -6,11 +6,8 @@ import com.dingdongji.mod.item.ModItems;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Set;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -20,7 +17,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ArmorMaterial.Layer;
 import net.neoforged.neoforge.client.ClientHooks;
@@ -45,11 +41,11 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
    private final HumanoidModel<T> outerModel;
 
    private static int breathColor(EmissiveArmorLayer.BreathSet set, float ageTicks) {
-      float q = spriteDarkness(set);
+      // Darkness is replayed from the actual block outline animation loaded
+      // by the game (mcmeta frames/timings/interpolate), ticking on the same
+      // atlas pulse. Fallback only if the sprite definition is unavailable.
+      float q = GlowPhaseTracker.darkness(set.outline);
       if (q < 0.0F) {
-         // Fallback: local triangle wave mirroring the outline mcmeta
-         // (frames [0,1,2,1] at 10 ticks with interpolate:true), phase
-         // shifted half a period so frame 0 aligns with darkness.
          float p = ageTicks % BREATH_PERIOD / BREATH_PERIOD;
          q = p < 0.5F ? 1.0F - p * 2.0F : p * 2.0F - 1.0F;
       }
@@ -58,43 +54,6 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       int g = Math.round((float)set.rgb[1] + (float)(set.rgb[4] - set.rgb[1]) * q);
       int b = Math.round((float)set.rgb[2] + (float)(set.rgb[5] - set.rgb[2]) * q);
       return 0xFF000000 | r << 16 | g << 8 | b;
-   }
-
-   private static ResourceLocation outlineTexture(EmissiveArmorLayer.BreathSet set) {
-      return switch (set) {
-         case EMBER -> ResourceLocation.fromNamespaceAndPath("anvilcraft", "block/ember_metal_block_outline");
-         case FROST -> ResourceLocation.fromNamespaceAndPath("anvilcraft", "block/frost_metal_block_outline");
-         case TRANS -> ResourceLocation.fromNamespaceAndPath("anvilcraft", "block/transcendium_block_outline");
-      };
-   }
-
-   private static float spriteDarkness(EmissiveArmorLayer.BreathSet set) {
-      Minecraft mc = Minecraft.getInstance();
-      if (mc.level == null) {
-         return -1.0F;
-      } else {
-         TextureAtlas atlas = mc.getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS);
-         if (atlas == null) {
-            return -1.0F;
-         } else {
-            TextureAtlasSprite sprite = atlas.getSprite(outlineTexture(set));
-            if (sprite == null) {
-               return -1.0F;
-            } else {
-               int phase = GlowPhaseTracker.phase(sprite.contents());
-               if (phase < 0) {
-                  return -1.0F;
-               } else {
-                  // Outline frames are [dark, mid, bright]; entry 0 starts on
-                  // the dark frame, so darkness peaks at phase 0/40 and the
-                  // bright frame sits at phase 20. Same tick-stepped mix the
-                  // block sprites upload, so both stay perfectly in sync.
-                  float v = 1.0F - Math.abs((float)phase - 20.0F) / 20.0F;
-                  return v < 0.0F ? 0.0F : Math.min(v, 1.0F);
-               }
-            }
-         }
-      }
    }
 
    private static EmissiveArmorLayer.BreathSet breathSetOf(Item item) {
@@ -194,19 +153,21 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
    }
 
    private static enum BreathSet {
-      EMBER(255, 250, 180, 215, 129, 3),
-      FROST(255, 255, 255, 183, 197, 207),
-      TRANS(255, 230, 255, 145, 25, 255);
+      EMBER(255, 250, 180, 215, 129, 3, GlowPhaseTracker.Outline.EMBER),
+      FROST(255, 255, 255, 183, 197, 207, GlowPhaseTracker.Outline.FROST),
+      TRANS(255, 230, 255, 145, 25, 255, GlowPhaseTracker.Outline.TRANS);
 
       private final int[] rgb = new int[6];
+      private final GlowPhaseTracker.Outline outline;
 
-      private BreathSet(int rHi, int gHi, int bHi, int rLo, int gLo, int bLo) {
+      private BreathSet(int rHi, int gHi, int bHi, int rLo, int gLo, int bLo, GlowPhaseTracker.Outline outline) {
          this.rgb[0] = rHi;
          this.rgb[1] = gHi;
          this.rgb[2] = bHi;
          this.rgb[3] = rLo;
          this.rgb[4] = gLo;
          this.rgb[5] = bLo;
+         this.outline = outline;
       }
    }
 }

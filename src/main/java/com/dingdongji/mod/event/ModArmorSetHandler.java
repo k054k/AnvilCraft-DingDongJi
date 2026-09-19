@@ -547,6 +547,59 @@ public class ModArmorSetHandler {
       return surfaceY;
    }
 
+   /**
+    * Invoked from Entity#move TAIL while surface-walking boots are worn. When
+    * this self movement brings a descending player onto (or just through) the
+    * top of a walkable fluid, clamp the feet exactly onto the surface the way
+    * a solid-block collision would. Doing it inside move() keeps the entity's
+    * pre-move position above the surface, so render interpolation never shows
+    * the one-tick dip that a next-tick snap in the tick event would cause.
+    */
+   public static boolean landOnWalkableFluid(Player player) {
+      ItemStack boots = player.getItemBySlot(EquipmentSlot.FEET);
+      boolean transBoots = boots.is((Item)ModItems.TRANSCENDIUM_BOOTS.get());
+      boolean emberBoots = boots.is((Item)ModItems.EMBER_METAL_BOOTS.get());
+      if (!transBoots && !emberBoots) {
+         return false;
+      } else if (isFluidSwimming(player) || player.isShiftKeyDown() || player.isFallFlying()) {
+         // Diving, crouch-diving or gliding: pass through the surface.
+         return false;
+      } else {
+         Vec3 mot = player.getDeltaMovement();
+         if (mot.y > 0.0) {
+            return false;
+         } else {
+            Level level = player.level();
+            BlockPos feetPos = player.blockPosition();
+            boolean fluidAtFeet = isWalkableFluid(level.getFluidState(feetPos), transBoots, emberBoots);
+            boolean fluidBelow = isWalkableFluid(level.getFluidState(feetPos.below()), transBoots, emberBoots);
+            if (!fluidAtFeet && !fluidBelow) {
+               return false;
+            } else if (isWalkableFluid(level.getFluidState(BlockPos.containing(player.getEyePosition())), transBoots, emberBoots)) {
+               // Fully immersed: keep the buoyant swim-up path instead of
+               // teleporting onto the surface.
+               return false;
+            } else {
+               double surfaceY = findFluidSurfaceY(level, feetPos, transBoots, emberBoots);
+               if (Double.isNaN(surfaceY)) {
+                  return false;
+               } else {
+                  double feetY = player.getY();
+                  if (feetY <= surfaceY + 0.1 && feetY >= surfaceY - 0.6) {
+                     player.setPos(player.getX(), surfaceY, player.getZ());
+                     player.setDeltaMovement(mot.x, 0.0, mot.z);
+                     player.setOnGround(true);
+                     player.fallDistance = 0.0F;
+                     return true;
+                  } else {
+                     return false;
+                  }
+               }
+            }
+         }
+      }
+   }
+
    private static void handleFluidSurface(Player player, boolean walkAny, boolean walkLava) {
       Level level = player.level();
       BlockPos feetPos = player.blockPosition();

@@ -13,6 +13,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -262,7 +263,20 @@ public class ModEvents {
       }
 
       if (!descLines.isEmpty()) {
-         list.addAll(1, descLines);
+         // Anchor above the enchantment block instead of a hardcoded index:
+         // enchantment lines (curses included, e.g. enchantment.minecraft.binding_curse)
+         // are translatable lines whose key contains "enchantment", matching how
+         // AnvilCraft locates the enchantment boundary. Fallback is right below
+         // the item name when the item carries no enchantments.
+         int insertAt = 1;
+         for (int i = 1; i < list.size(); i++) {
+            if (list.get(i).getContents() instanceof TranslatableContents tc && tc.getKey().contains("enchantment")) {
+               insertAt = i;
+               break;
+            }
+         }
+
+         list.addAll(insertAt, descLines);
       }
 
       if (ModItems.isCreateTemplate(stack)) {

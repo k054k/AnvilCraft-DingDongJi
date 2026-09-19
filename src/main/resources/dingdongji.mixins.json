@@ -26,6 +26,7 @@
     "EntityCanTrampleMixin",
     "MixinBlockFriction",
     "MixinCanStandOnFluid",
+    "MixinEntityFluidSurfaceLand",
     "MixinEntityBlockSlowdown",
     "MixinEntityGravity",
     "MixinAtmosphereDrag",
@@ -42,8 +43,7 @@
     "MixinGuiOverlays",
     "MixinLightTextureNightVision",
     "MixinNightVisionScale",
-    "MixinSpriteContentsTickerBind",
-    "MixinSpriteTickerPhase"
+    "MixinTextureAtlasPulse"
   ],
   "injectors": {
     "defaultRequire": 0
