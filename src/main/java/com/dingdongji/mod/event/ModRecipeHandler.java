@@ -14,6 +14,6 @@ public class ModRecipeHandler {
    public static void onServerStarted(ServerStartedEvent event) {
       MinecraftServer server = event.getServer();
       AnvilCraftCompat.init(server.registryAccess());
-      LOGGER.info("[DingDongJi] 服务端启动完成, AnvilCraft={}", AnvilCraftCompat.isLoaded());
+      LOGGER.info("(இωஇ )");
    }
 }
