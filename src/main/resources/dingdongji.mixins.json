@@ -29,7 +29,6 @@
     "MixinEntityFluidSurfaceLand",
     "MixinEntityBlockSlowdown",
     "MixinEntityGravity",
-    "MixinEntitySpectralPhase",
     "MixinAtmosphereDrag",
     "MixinCanFreeze"
   ],

@@ -435,13 +435,30 @@ public class ModArmorSetHandler {
          }
       }
 
-      // While vertical phasing the client is the movement authority, matching
-      // the vanilla spectator/Vex recipe (Entity.noPhysics); without it the
-      // server "moved wrongly" check would rubber-band phased movement back.
-      // The flag only engages through the legit toggle and is restored here.
-      player.noPhysics = active || player.isSpectator();
-      if (active) {
+      // Vex recipe (net.minecraft.world.entity.monster.Vex#tick): noPhysics for
+      // the whole tick + noGravity, plain field toggling - no collide() surgery.
+      // User-approved scope (twice, informed): full set phases with Y locked
+      // (hover, horizontal only); the boots toggle adds shift/space vertical
+      // control like scaffolding. noPhysics also makes the server accept raw
+      // client-authoritative positions (spectator packet path), which is what
+      // stops the rubber-banding. Restored right here when conditions stop.
+      int mode = spectralPhaseMode(player);
+      boolean phasing = mode >= 1;
+      player.noPhysics = phasing || player.isSpectator();
+      player.setNoGravity(phasing);
+      if (phasing) {
          player.fallDistance = 0.0F;
+         if (mode == 1) {
+            // Y locked: hover, horizontal movement only.
+            Vec3 dm = player.getDeltaMovement();
+            player.setDeltaMovement(dm.x, 0.0, dm.z);
+         } else if (player.isShiftKeyDown()) {
+            // Scaffold-style descent. Shift is reliably synced (vanilla sneak).
+            Vec3 dm = player.getDeltaMovement();
+            player.setDeltaMovement(dm.x, -0.15, dm.z);
+         }
+      } else if (player.isNoGravity()) {
+         player.setNoGravity(false);
       }
    }
 

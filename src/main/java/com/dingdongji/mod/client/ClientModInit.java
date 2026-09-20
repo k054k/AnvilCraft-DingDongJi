@@ -17,6 +17,7 @@ public final class ClientModInit {
       modEventBus.addListener(ClientSetupHandler::onClientSetup);
       modEventBus.addListener(ClientSetupHandler::registerParticleProviders);
       modEventBus.addListener(ClientModInit::registerScreens);
+      modEventBus.addListener(SpectralPhaseClientHandler::onClientTick);
    }
 
    private static void registerScreens(RegisterMenuScreensEvent event) {
