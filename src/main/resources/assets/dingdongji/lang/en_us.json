@@ -1,5 +1,5 @@
 {
-  "dingdongji.configuration.glowBandEnabled": "Armor Glow Band",
+  "dingdongji.configuration.glowBandEnabled": "Armor Glow Band & Breathing Light",
   "dingdongji.configuration.glowBandEnabled.tooltip": "The glowing band overlay on the metal armor sets. Turn this off if the band renders black or invisible on your GPU.",
   "block.dingdongji.ji_anvil": "Ji Anvil",
   "block.dingdongji.keji_block": "Keji Block",
@@ -32,7 +32,6 @@
   "itemGroup.dingdongji": "AnvilCraft: DingDongJi",
   "key.categories.dingdongji": "DingDongJi",
   "key.dingdongji.ability_toggle": "Toggle Boots Ability",
-  "key.dingdongji.frost_slide_toggle": "Toggle Frost Slide",
   "key.dingdongji.glowing_vision_toggle": "Toggle Glowing Vision",
   "key.dingdongji.neutron_barrier_toggle": "Toggle Neutron Cowl",
   "screen.dingdongji.ji_upgrade": "Ji Upgrade",

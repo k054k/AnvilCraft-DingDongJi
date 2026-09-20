@@ -258,7 +258,7 @@ public class ModEvents {
       }
 
       if (stack.has((DataComponentType)ModComponents.FROST_WALK.get())) {
-         String frostKey = ModKeyBindings.FROST_SLIDE_KEY.getTranslatedKeyMessage().getString();
+         String frostKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
          descLines.add(Component.translatable("tooltip.dingdongji.frost_walk", new Object[]{frostKey}).setStyle(FROST_ABILITY_STYLE));
       }
 

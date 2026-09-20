@@ -1,5 +1,5 @@
 {
-  "dingdongji.configuration.glowBandEnabled": "盔甲光带",
+  "dingdongji.configuration.glowBandEnabled": "盔甲光带发光与呼吸灯效果",
   "dingdongji.configuration.glowBandEnabled.tooltip": "金属盔甲套装的发光光带。若你的显卡上光带显示为黑色或不显示，请关闭此项。",
   "block.dingdongji.ji_anvil": "叽砧",
   "block.dingdongji.keji_block": "叽块",
@@ -38,7 +38,6 @@
   "screen.dingdongji.create_template.additions_slot_description": "放入配方材料",
   "key.categories.dingdongji": "叮咚叽",
   "key.dingdongji.ability_toggle": "切换靴子能力",
-  "key.dingdongji.frost_slide_toggle": "凌霜溜冰切换",
   "key.dingdongji.glowing_vision_toggle": "超限合金头盔高亮切换",
   "key.dingdongji.neutron_barrier_toggle": "超限合金护腿中子屏罩切换",
   "item.dingdongji.frost_metal_helmet": "浮霜金属头盔",
