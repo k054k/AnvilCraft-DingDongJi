@@ -2,6 +2,7 @@ package com.dingdongji.mod;
 
 import com.dingdongji.mod.block.ModBlocks;
 import com.dingdongji.mod.client.ClientModInit;
+import com.dingdongji.mod.client.SpectralPhaseClientHandler;
 import com.dingdongji.mod.event.ModArmorSetHandler;
 import com.dingdongji.mod.event.ModEvents;
 import com.dingdongji.mod.event.ModRecipeHandler;
@@ -49,6 +50,9 @@ public class KryptonMod {
 
       modEventBus.addListener(ModNetwork::register);
       IEventBus gameBus = NeoForge.EVENT_BUS;
+      if (FMLEnvironment.dist == Dist.CLIENT) {
+         gameBus.addListener(SpectralPhaseClientHandler::onClientTick);
+      }
       gameBus.addListener(ModArmorSetHandler::onPlayerTick);
       gameBus.addListener(ModArmorSetHandler::onLivingDamage);
       gameBus.addListener(EventPriority.LOW, false, ModArmorSetHandler::onLivingBreathe);
