@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Set;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -97,14 +98,14 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
 
       if (!AfterimageManager.isRenderingAfterimage()) {
          float breathTicks = (float)entity.level().getGameTime() + partialTicks;
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.CHEST, breathTicks);
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.LEGS, breathTicks);
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.FEET, breathTicks);
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.HEAD, breathTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.CHEST, breathTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.LEGS, breathTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.FEET, breathTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.HEAD, breathTicks);
       }
    }
 
-   private void renderPiece(PoseStack pose, MultiBufferSource buffers, T entity, EquipmentSlot slot, float breathTicks) {
+   private void renderPiece(PoseStack pose, MultiBufferSource buffers, int packedLight, T entity, EquipmentSlot slot, float breathTicks) {
       ItemStack stack = entity.getItemBySlot(slot);
       if (stack.getItem() instanceof ArmorItem armorItem) {
          if (armorItem.getEquipmentSlot() == slot && GLOW_ARMOR.contains(armorItem)) {
@@ -117,7 +118,18 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
 
             for (Layer layer : material.layers()) {
                ResourceLocation armorTexture = ClientHooks.getArmorTexture(entity, stack, layer, inner, slot);
-               ResourceLocation glowTexture = toGlowLocation(armorTexture);
+               ResourceLocation glowTexture = toSuffixLocation(armorTexture, "_glow.png");
+               // When the band is enabled the vanilla armor texture (which carries
+               // a static bright band) is first overpainted with the "_dark"
+               // variant whose band area is painted black, so only the animated
+               // emissive layer below supplies the band color. The dark base only
+               // exists for the outer model (layer_1); the leggings layer keeps
+               // its vanilla texture.
+               if (!inner) {
+                  ResourceLocation darkTexture = toSuffixLocation(armorTexture, "_dark.png");
+                  VertexConsumer baseConsumer = buffers.getBuffer(RenderType.armorCutoutNoCull(darkTexture));
+                  model.renderToBuffer(pose, baseConsumer, packedLight, OverlayTexture.NO_OVERLAY, -1);
+               }
                VertexConsumer consumer = buffers.getBuffer(GlowArmorRenderType.glowArmor(glowTexture));
                // Vanilla eyes-layer recipe (spider / enderman): redraw the exact
                // same model with the identical pose. Bit-identical vertices give
@@ -131,10 +143,10 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       }
    }
 
-   private static ResourceLocation toGlowLocation(ResourceLocation armorTexture) {
+   private static ResourceLocation toSuffixLocation(ResourceLocation armorTexture, String suffix) {
       String path = armorTexture.getPath();
       if (path.endsWith(".png")) {
-         path = path.substring(0, path.length() - 4) + "_glow.png";
+         path = path.substring(0, path.length() - 4) + suffix;
       }
 
       return ResourceLocation.fromNamespaceAndPath(armorTexture.getNamespace(), path);

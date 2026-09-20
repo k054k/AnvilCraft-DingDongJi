@@ -8,6 +8,7 @@ import com.dingdongji.mod.item.component.DevourData;
 import com.dingdongji.mod.item.component.MeaninglessData;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
@@ -47,6 +48,8 @@ public class ModEvents {
    private static final Style GRAY_STYLE = Style.EMPTY.withColor(11184810).withItalic(false);
    private static final Style CREATE_TEMPLATE_STYLE = Style.EMPTY.withColor(11141375).withItalic(false);
    private static final Style PARANOID_STYLE = Style.EMPTY.withColor(11141120).withItalic(false);
+   private static final Style SPECTRAL_SET_STYLE = Style.EMPTY.withColor(ChatFormatting.AQUA.getColor()).withItalic(false);
+   private static final Style SPECTRAL_PHASE_STYLE = Style.EMPTY.withColor(0x7187F5).withItalic(false);
 
    @SubscribeEvent
    public static void onLivingDeath(LivingDeathEvent event) {
@@ -260,6 +263,18 @@ public class ModEvents {
       if (stack.has((DataComponentType)ModComponents.FROST_WALK.get())) {
          String frostKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
          descLines.add(Component.translatable("tooltip.dingdongji.frost_walk", new Object[]{frostKey}).setStyle(FROST_ABILITY_STYLE));
+      }
+
+      if (stack.is((Item)ModItems.SPECTRAL_HELMET.get())
+         || stack.is((Item)ModItems.SPECTRAL_CHESTPLATE.get())
+         || stack.is((Item)ModItems.SPECTRAL_LEGGINGS.get())
+         || stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         descLines.add(Component.translatable("tooltip.dingdongji.spectral_set").setStyle(SPECTRAL_SET_STYLE));
+      }
+
+      if (stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         String phaseKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         descLines.add(Component.translatable("tooltip.dingdongji.spectral_phase", new Object[]{phaseKey}).setStyle(SPECTRAL_PHASE_STYLE));
       }
 
       if (!descLines.isEmpty()) {

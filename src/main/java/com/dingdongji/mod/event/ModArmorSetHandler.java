@@ -81,6 +81,7 @@ public class ModArmorSetHandler {
    private static final int EFFECT_DURATION = 6000;
    private static final Map<UUID, Boolean> LAVA_WALKER_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> FROST_SLIDE_ENABLED = new HashMap<>();
+   private static final Map<UUID, Boolean> SPECTRAL_PHASE_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> GLOWING_VISION_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> COMFORTABLE_ENABLED = new HashMap<>();
    private static final Map<UUID, Integer> NEUTRON_BARRIER_ENABLED = new HashMap<>();
@@ -141,6 +142,7 @@ public class ModArmorSetHandler {
       saveToggleStates(player);
       LAVA_WALKER_ENABLED.remove(uuid);
       FROST_SLIDE_ENABLED.remove(uuid);
+      SPECTRAL_PHASE_ENABLED.remove(uuid);
       FLUID_SWIM.remove(uuid);
       GLOWING_VISION_ENABLED.remove(uuid);
       COMFORTABLE_ENABLED.remove(uuid);
@@ -163,6 +165,7 @@ public class ModArmorSetHandler {
       Player player = event.getEntity();
       handleSurfaceWalking(player);
       if (!player.level().isClientSide) {
+         handleSpectralPhase(player);
          handleJiSet(player);
          handleComfortable(player);
          handleRoyalSteelChestplate(player);
@@ -372,13 +375,84 @@ public class ModArmorSetHandler {
       return player.level().isClientSide ? ClientAbilityState.isFrostSlide(player) : FROST_SLIDE_ENABLED.getOrDefault(player.getUUID(), false);
    }
 
+   public static boolean hasFullSpectralSet(Player player) {
+      return player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.SPECTRAL_HELMET.get())
+         && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.SPECTRAL_CHESTPLATE.get())
+         && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.SPECTRAL_LEGGINGS.get())
+         && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.SPECTRAL_BOOTS.get());
+   }
+
+   /**
+    * 0 = no phase, 1 = horizontal free (full set passive), 2 = vertical also
+    * free (full set + boots toggle on). Called from the collide mixin on both
+    * sides every movement, so it must stay allocation-free.
+    */
+   public static int spectralPhaseMode(Player player) {
+      if (!hasFullSpectralSet(player)) {
+         return 0;
+      }
+
+      boolean vertical = player.level().isClientSide
+         ? ClientAbilityState.isPhaseVertical(player)
+         : SPECTRAL_PHASE_ENABLED.getOrDefault(player.getUUID(), false);
+      return vertical ? 2 : 1;
+   }
+
+   public static void togglePhaseVertical(ServerPlayer player) {
+      ItemStack boots = player.getItemBySlot(EquipmentSlot.FEET);
+      if (boots.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         UUID uuid = player.getUUID();
+         boolean enabled = !SPECTRAL_PHASE_ENABLED.getOrDefault(uuid, false);
+         if (enabled && !hasFullSpectralSet(player)) {
+            player.displayClientMessage(Component.literal("虚化需要穿戴全套幻灵盔甲").withStyle(ChatFormatting.RED), true);
+            return;
+         }
+
+         if (enabled && !player.onGround()) {
+            // Scaffold-like rule: engaging vertical phasing requires block
+            // support underfoot.
+            player.displayClientMessage(Component.literal("虚化需要脚底有方块支撑").withStyle(ChatFormatting.RED), true);
+            return;
+         }
+
+         SPECTRAL_PHASE_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("虚化", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      }
+   }
+
+   private static void handleSpectralPhase(Player player) {
+      UUID uuid = player.getUUID();
+      boolean active = SPECTRAL_PHASE_ENABLED.getOrDefault(uuid, false);
+      if (active && !hasFullSpectralSet(player)) {
+         active = false;
+         SPECTRAL_PHASE_ENABLED.put(uuid, false);
+         player.displayClientMessage(actionMessage("虚化", "关", ChatFormatting.RED), true);
+         saveToggleStates(player);
+         if (player instanceof ServerPlayer serverPlayer) {
+            syncAbilityState(serverPlayer);
+         }
+      }
+
+      // While vertical phasing the client is the movement authority, matching
+      // the vanilla spectator/Vex recipe (Entity.noPhysics); without it the
+      // server "moved wrongly" check would rubber-band phased movement back.
+      // The flag only engages through the legit toggle and is restored here.
+      player.noPhysics = active || player.isSpectator();
+      if (active) {
+         player.fallDistance = 0.0F;
+      }
+   }
+
    public static void syncAbilityState(ServerPlayer player) {
       PacketDistributor.sendToPlayer(
          player,
          new AbilityStateSyncPacket(
             LAVA_WALKER_ENABLED.getOrDefault(player.getUUID(), false),
             FROST_SLIDE_ENABLED.getOrDefault(player.getUUID(), false),
-            HELMET_MODE.getOrDefault(player.getUUID(), 5)
+            HELMET_MODE.getOrDefault(player.getUUID(), 5),
+            SPECTRAL_PHASE_ENABLED.getOrDefault(player.getUUID(), false)
          ),
          new CustomPacketPayload[0]
       );
@@ -1166,6 +1240,13 @@ public class ModArmorSetHandler {
    public static void onLivingDamage(LivingIncomingDamageEvent event) {
       if (event.getEntity() instanceof Player player) {
          if (!player.level().isClientSide) {
+            // Phasing players stand inside blocks by design; vanilla suffocation
+            // would otherwise fire constantly.
+            if (event.getSource().is(DamageTypes.IN_WALL) && hasFullSpectralSet(player)) {
+               event.setCanceled(true);
+               return;
+            }
+
             if (isArmorProtectedDamage(player, event.getSource())) {
                event.setCanceled(true);
             }
@@ -1245,6 +1326,7 @@ public class ModArmorSetHandler {
       data.putInt("dingdongji:helmet_mode", HELMET_MODE.getOrDefault(uuid, 5));
       data.putBoolean("dingdongji:lava_walker", LAVA_WALKER_ENABLED.getOrDefault(uuid, false));
       data.putBoolean("dingdongji:frost_slide", FROST_SLIDE_ENABLED.getOrDefault(uuid, false));
+      data.putBoolean("dingdongji:spectral_phase", SPECTRAL_PHASE_ENABLED.getOrDefault(uuid, false));
       data.putBoolean("dingdongji:comfortable", COMFORTABLE_ENABLED.getOrDefault(uuid, false));
       data.putInt("dingdongji:neutron_barrier", NEUTRON_BARRIER_ENABLED.getOrDefault(uuid, 0));
       data.putInt("dingdongji:ionocraft_mode", IONOCRAFT_FLIGHT_MODE.getOrDefault(uuid, 1));
@@ -1258,6 +1340,7 @@ public class ModArmorSetHandler {
       GLOWING_VISION_ENABLED.put(uuid, helmetMode == 0 || helmetMode == 4);
       LAVA_WALKER_ENABLED.put(uuid, data.getBoolean("dingdongji:lava_walker"));
       FROST_SLIDE_ENABLED.put(uuid, data.getBoolean("dingdongji:frost_slide"));
+      SPECTRAL_PHASE_ENABLED.put(uuid, data.getBoolean("dingdongji:spectral_phase"));
       COMFORTABLE_ENABLED.put(uuid, data.getBoolean("dingdongji:comfortable"));
       NEUTRON_BARRIER_ENABLED.put(uuid, data.getInt("dingdongji:neutron_barrier"));
       int flightMode;

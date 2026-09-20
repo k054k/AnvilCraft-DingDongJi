@@ -263,6 +263,19 @@ public class ModItems {
          )
    );
 
+   public static final DeferredItem<ArmorItem> SPECTRAL_HELMET = ITEMS.register(
+      "spectral_helmet", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.HELMET, new Properties().durability(vanillaArmor(Type.HELMET, 33)))
+   );
+   public static final DeferredItem<ArmorItem> SPECTRAL_CHESTPLATE = ITEMS.register(
+      "spectral_chestplate", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.CHESTPLATE, new Properties().durability(vanillaArmor(Type.CHESTPLATE, 33)))
+   );
+   public static final DeferredItem<ArmorItem> SPECTRAL_LEGGINGS = ITEMS.register(
+      "spectral_leggings", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.LEGGINGS, new Properties().durability(vanillaArmor(Type.LEGGINGS, 33)))
+   );
+   public static final DeferredItem<ArmorItem> SPECTRAL_BOOTS = ITEMS.register(
+      "spectral_boots", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.BOOTS, new Properties().durability(vanillaArmor(Type.BOOTS, 33)))
+   );
+
    public static boolean isCreateTemplate(ItemStack stack) {
       return !stack.isEmpty() && stack.is((Item)CREATE_TEMPLATE.get());
    }

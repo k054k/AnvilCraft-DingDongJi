@@ -29,6 +29,7 @@
     "MixinEntityFluidSurfaceLand",
     "MixinEntityBlockSlowdown",
     "MixinEntityGravity",
+    "MixinEntitySpectralPhase",
     "MixinAtmosphereDrag",
     "MixinCanFreeze"
   ],
@@ -36,6 +37,7 @@
     "AdjacentSmithingScreenMixin",
     "TranscendenceSmithingScreenMixin",
     "AccessorHumanoidArmorLayer",
+    "MixinHumanoidArmorLayerRenderType",
     "AccessorLivingEntityRenderer",
     "MixinLavaVision",
     "MixinFireOverlay",

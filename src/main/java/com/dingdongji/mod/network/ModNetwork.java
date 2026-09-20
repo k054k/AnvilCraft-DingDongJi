@@ -34,8 +34,15 @@ public class ModNetwork {
          ModArmorSetHandler.toggleLavaWalker(player);
       } else if (boots.is((Item)ModItems.FROST_METAL_BOOTS.get())) {
          ModArmorSetHandler.toggleFrostSlide(player);
+      } else if (boots.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         ModArmorSetHandler.togglePhaseVertical(player);
       } else if (boots.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
          ModArmorSetHandler.toggleIonocraftFlight(player);
+      } else {
+         // No recognized boots equipped: the client may have optimistically
+         // flipped its local state in the same tick the boots came off, so
+         // resync the authoritative state to roll it back.
+         ModArmorSetHandler.syncAbilityState(player);
       }
    }
 
@@ -43,7 +50,7 @@ public class ModNetwork {
       public void handle(AbilityStateSyncPacket packet, IPayloadContext context) {
          context.enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) {
-               ClientAbilityState.applySync(packet.lavaWalker(), packet.frostSlide(), packet.helmetMode());
+               ClientAbilityState.applySync(packet.lavaWalker(), packet.frostSlide(), packet.helmetMode(), packet.phaseVertical());
             }
          });
       }
