@@ -119,7 +119,12 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       if (stack.getItem() instanceof ArmorItem armorItem) {
          if (armorItem.getEquipmentSlot() == slot && GLOW_ARMOR.contains(armorItem)) {
             boolean inner = slot == EquipmentSlot.LEGS;
-            HumanoidModel<T> model = inner ? this.innerModel : this.outerModel;
+            HumanoidModel<T> context = inner ? this.innerModel : this.outerModel;
+            // Resolve the same custom armor model the base armor layer uses
+            // (e.g. neutron suit -> AnvilCraft weatherproof geometry), so the
+            // dark underlay and emissive overlay align with the worn shape.
+            HumanoidModel<T> model = (HumanoidModel<T>)net.neoforged.neoforge.client.extensions.common.IClientItemExtensions.of(stack)
+               .getHumanoidArmorModel(entity, stack, slot, context);
             ((HumanoidModel)this.getParentModel()).copyPropertiesTo(model);
             setPartVisibility(model, slot);
             int color = breathColor(breathSetOf(armorItem), breathTicks);

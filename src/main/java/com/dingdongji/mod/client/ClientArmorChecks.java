@@ -51,15 +51,7 @@ public final class ClientArmorChecks {
       return hasTranscendiumHelmet() && ClientAbilityState.nightVision();
    }
 
-   // Fog removal is active with the Transcendium helmet everywhere except
-   // the Overworld, whose distance fog barely affects visibility and is
-   // kept for the natural look.
    public static boolean shouldClearFog() {
-      if (!hasTranscendiumHelmet()) {
-         return false;
-      } else {
-         ClientLevel level = Minecraft.getInstance().level;
-         return level == null || !level.dimension().equals(Level.OVERWORLD);
-      }
+      return hasTranscendiumHelmet();
    }
 }

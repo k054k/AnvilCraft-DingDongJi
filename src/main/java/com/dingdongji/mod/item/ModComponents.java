@@ -15,6 +15,7 @@ import com.dingdongji.mod.item.component.LavaWalkerComponent;
 import com.dingdongji.mod.item.component.MeaninglessComponent;
 import com.dingdongji.mod.item.component.MeaninglessData;
 import com.dingdongji.mod.item.component.NeutronBarrierComponent;
+import com.dingdongji.mod.item.component.PouchCapacityComponent;
 import com.dingdongji.mod.item.component.RoyalSteelAffinityComponent;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -76,5 +77,8 @@ public class ModComponents {
    );
    public static final DeferredHolder<DataComponentType<?>, DataComponentType<FrostWalkComponent>> FROST_WALK = COMPONENTS.register(
       "frost_walk", () -> DataComponentType.<FrostWalkComponent>builder().persistent(FrostWalkComponent.CODEC).networkSynchronized(FrostWalkComponent.STREAM_CODEC).build()
+   );
+   public static final DeferredHolder<DataComponentType<?>, DataComponentType<PouchCapacityComponent>> POUCH_CAPACITY = COMPONENTS.register(
+      "pouch_capacity", () -> DataComponentType.<PouchCapacityComponent>builder().persistent(PouchCapacityComponent.CODEC).networkSynchronized(PouchCapacityComponent.STREAM_CODEC).build()
    );
 }

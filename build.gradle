@@ -24,7 +24,9 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
     // 铁砧工艺（AnvilCraft）：编译期引用其锻造台/网络类
     // 自动加载 libs 目录下所有 jar，避免写死文件名导致与 libs 中实际文件名不一致
-    implementation fileTree(dir: 'libs', include: '*.jar')
+    // JEI 仅编译期需要 API（@JeiPlugin 实现），运行期由独立 mod 提供，不打包
+    implementation fileTree(dir: 'libs', include: '*.jar', exclude: 'jei-*')
+    compileOnly fileTree(dir: 'libs', include: 'jei-*.jar')
 }
 
 tasks.withType(JavaCompile).configureEach {

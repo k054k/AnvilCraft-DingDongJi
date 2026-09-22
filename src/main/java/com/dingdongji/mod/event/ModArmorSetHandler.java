@@ -25,6 +25,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -64,6 +65,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import com.dingdongji.mod.mixin.LivingEntityJumpingAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
@@ -376,10 +380,11 @@ public class ModArmorSetHandler {
    }
 
    public static boolean hasFullSpectralSet(Player player) {
-      return player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.SPECTRAL_HELMET.get())
-         && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.SPECTRAL_CHESTPLATE.get())
-         && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.SPECTRAL_LEGGINGS.get())
-         && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.SPECTRAL_BOOTS.get());
+      boolean head = player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.SPECTRAL_HELMET.get());
+      boolean chest = player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.SPECTRAL_CHESTPLATE.get());
+      boolean legs = player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.SPECTRAL_LEGGINGS.get());
+      boolean feet = player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.SPECTRAL_BOOTS.get());
+      return head && chest && legs && feet;
    }
 
    /**
@@ -408,13 +413,6 @@ public class ModArmorSetHandler {
             return;
          }
 
-         if (enabled && !player.onGround()) {
-            // Scaffold-like rule: engaging vertical phasing requires block
-            // support underfoot.
-            player.displayClientMessage(Component.literal("虚化需要脚底有方块支撑").withStyle(ChatFormatting.RED), true);
-            return;
-         }
-
          SPECTRAL_PHASE_ENABLED.put(uuid, enabled);
          player.displayClientMessage(actionMessage("虚化", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
          saveToggleStates(player);
@@ -423,43 +421,99 @@ public class ModArmorSetHandler {
    }
 
    private static void handleSpectralPhase(Player player) {
-      UUID uuid = player.getUUID();
-      boolean active = SPECTRAL_PHASE_ENABLED.getOrDefault(uuid, false);
-      if (active && !hasFullSpectralSet(player)) {
-         active = false;
-         SPECTRAL_PHASE_ENABLED.put(uuid, false);
-         player.displayClientMessage(actionMessage("虚化", "关", ChatFormatting.RED), true);
-         saveToggleStates(player);
-         if (player instanceof ServerPlayer serverPlayer) {
-            syncAbilityState(serverPlayer);
-         }
-      }
-
-      // Vex recipe (net.minecraft.world.entity.monster.Vex#tick): noPhysics for
-      // the whole tick + noGravity, plain field toggling - no collide() surgery.
-      // User-approved scope (twice, informed): full set phases with Y locked
-      // (hover, horizontal only); the boots toggle adds shift/space vertical
-      // control like scaffolding. noPhysics also makes the server accept raw
-      // client-authoritative positions (spectator packet path), which is what
-      // stops the rubber-banding. Restored right here when conditions stop.
-      int mode = spectralPhaseMode(player);
-      boolean phasing = mode >= 1;
-      player.noPhysics = phasing || player.isSpectator();
-      player.setNoGravity(phasing);
-      if (phasing) {
+      // 开关状态只由玩家按 toggle 键改变，脱掉装备不清除（与蹈火/凌霜等
+      // 靴子功能一致），退出/登录经 saveToggleStates/loadToggleStates 持久化。
+      // 未穿全套时 spectralPhaseMode 返回 0，功能暂停；穿回后自动恢复。
+      if (isVerticalPhaseActive(player)) {
+         // mode 2 且（身体在方块内，或触底按 shift 开始下潜，流体中同样适用）：
+         // 无重力 + 垂直按键控制（与客户端 SpectralPhaseClientHandler 同逻辑）
+         player.setNoGravity(true);
          player.fallDistance = 0.0F;
-         if (mode == 1) {
-            // Y locked: hover, horizontal movement only.
-            Vec3 dm = player.getDeltaMovement();
-            player.setDeltaMovement(dm.x, 0.0, dm.z);
-         } else if (player.isShiftKeyDown()) {
-            // Scaffold-style descent. Shift is reliably synced (vanilla sneak).
-            Vec3 dm = player.getDeltaMovement();
-            player.setDeltaMovement(dm.x, -0.15, dm.z);
-         }
-      } else if (player.isNoGravity()) {
+         boolean jumpDown = ((LivingEntityJumpingAccessor) player).ddj$isJumping();
+         applyVerticalPhase(player, jumpDown, player.isShiftKeyDown());
+      } else {
          player.setNoGravity(false);
       }
+   }
+
+   /**
+    * 虚化垂直穿透是否激活（服务端事件与 move Mixin 共用同一判定）：
+    *   mode 2（水/岩浆/模组流体中同样适用：触底下穿是主动行为，不与
+    *   mode 1 的"水中脚触底不陷入"冲突），且满足以下之一：
+    *     - 身体当前处于方块内部（垂直穿移中）；
+    *     - 玩家触底（脚下方块有碰撞形状）按住潜行键（开始下潜）。
+    * 不满足时 y 分量做原版碰撞（mode 1 / mode 2 未激活：地表正常跑跳、
+    * 流体中正常游泳、脚触底停在方块顶）。
+    */
+   public static boolean isVerticalPhaseActive(Player player) {
+      if (spectralPhaseMode(player) != 2) {
+         return false;
+      }
+      if (isBodyClippingBlock(player)) {
+         return true;
+      }
+      return player.isShiftKeyDown() && hasCollisionBelow(player);
+   }
+
+   /**
+    * 实体身体 AABB（收缩 1e-4 排除面/线相切）是否与任何方块碰撞形状实质
+    * 相交。基于 Level#getBlockCollisions，对固体方块、树叶、栅栏等所有有
+    * 碰撞形状的方块均有效。客户端/服务端通用。
+    */
+   public static boolean isBodyClippingBlock(net.minecraft.world.entity.Entity entity) {
+      AABB inner = entity.getBoundingBox().deflate(1.0E-4);
+      return entity.level().getBlockCollisions(entity, inner).iterator().hasNext();
+   }
+
+   /**
+    * mode 2 虚化且身体处于方块内部时的垂直移动结算（双端同逻辑）。
+    *   跳跃键：向上 0.2/帧，若本帧会越过身体内最高方块顶面，则直接吸附
+    *           到该顶面（脚底站在方块顶上）并停止；
+    *   潜行键：脚底（下方 0.05）有方块碰撞时向下 0.15/帧；
+    *   其余：悬停（dy=0）。
+    *
+    * 服务端在 PlayerTickEvent.Pre 调用（本帧 move 前生效）；客户端在
+    * ClientTickEvent.Post 调用（设置下一帧速度，setPos 吸附修正本帧）。
+    */
+   public static void applyVerticalPhase(Player player, boolean jumpDown, boolean sneakDown) {
+      AABB box = player.getBoundingBox();
+      double dy = 0.0;
+      if (jumpDown) {
+         double highestTop = highestClippingBlockTop(player, box.deflate(1.0E-4));
+         if (highestTop != Double.NEGATIVE_INFINITY) {
+            if (player.getY() + 0.2 >= highestTop) {
+               player.setPos(player.getX(), highestTop, player.getZ());
+               dy = 0.0;
+            } else {
+               dy = 0.2;
+            }
+         }
+      } else if (sneakDown && hasCollisionBelow(player)) {
+         dy = -0.15;
+      }
+
+      Vec3 dm = player.getDeltaMovement();
+      player.setDeltaMovement(dm.x, dy, dm.z);
+   }
+
+   /** 身体 AABB 内所有碰撞形状中的最高顶面 Y。 */
+   private static double highestClippingBlockTop(Player player, AABB inner) {
+      double top = Double.NEGATIVE_INFINITY;
+      for (VoxelShape shape : player.level().getBlockCollisions(player, inner)) {
+         if (!shape.isEmpty()) {
+            top = Math.max(top, shape.max(Direction.Axis.Y));
+         }
+      }
+      return top;
+   }
+
+   /** 脚底下方 0.05 处的方块是否有碰撞形状。 */
+   private static boolean hasCollisionBelow(Player player) {
+      AABB probe = new AABB(
+         player.getX() - 0.1, player.getY() - 0.05, player.getZ() - 0.1,
+         player.getX() + 0.1, player.getY(), player.getZ() + 0.1
+      );
+      return player.level().getBlockCollisions(player, probe).iterator().hasNext();
    }
 
    public static void syncAbilityState(ServerPlayer player) {
@@ -586,6 +640,10 @@ public class ModArmorSetHandler {
 
             if (player.isShiftKeyDown() && fluidAtFeet) {
                FLUID_SWIM.add(uuid);
+               LOGGER.info(
+                  "[DingDongJi][流体] side={} tick={} 按shift进入下潜模式 FLUID_SWIM",
+                  level.isClientSide() ? "C" : "S", player.tickCount
+               );
                player.setOnGround(false);
                player.fallDistance = 0.0F;
             } else {
@@ -677,6 +735,11 @@ public class ModArmorSetHandler {
                } else {
                   double feetY = player.getY();
                   if (feetY <= surfaceY + 0.1 && feetY >= surfaceY - 0.6) {
+                     LOGGER.info(
+                        "[DingDongJi][流体] side={} tick={} moveTAIL夹到液面：feetY={} surfaceY={} motY={}",
+                        player.level().isClientSide() ? "C" : "S", player.tickCount,
+                        feetY, surfaceY, mot.y
+                     );
                      player.setPos(player.getX(), surfaceY, player.getZ());
                      player.setDeltaMovement(mot.x, 0.0, mot.z);
                      player.setOnGround(true);
@@ -698,8 +761,27 @@ public class ModArmorSetHandler {
       if (!Double.isNaN(surfaceY)) {
          boolean eyeInFluid = isWalkableFluid(level.getFluidState(BlockPos.containing(player.getEyePosition())), walkAny, walkLava);
          if (eyeInFluid) {
+            // 全身浸没：脚部与眼部（覆盖整个 1.8 高身体的上下两端）都在
+            // 可行走流体中。此时玩家是主动潜回水里，强制 motY ≥ +0.12
+            // 失效，完全交还给原版游泳物理（空格上浮 / Shift 下潜）。
+            boolean fullySubmerged = isWalkableFluid(level.getFluidState(feetPos), walkAny, walkLava);
             Vec3 mot = player.getDeltaMovement();
-            player.setDeltaMovement(mot.x * 0.5, Math.max(mot.y, 0.12), mot.z * 0.5);
+            if (fullySubmerged) {
+               LOGGER.info(
+                  "[DingDongJi][流体] side={} tick={} 全身浸没→强制上浮失效：feetY={} surfaceY={} motY={} shift={}",
+                  level.isClientSide() ? "C" : "S", player.tickCount,
+                  player.getY(), surfaceY, mot.y, player.isShiftKeyDown()
+               );
+            } else {
+               BlockState belowBlock = level.getBlockState(feetPos.below());
+               LOGGER.info(
+                  "[DingDongJi][流体] side={} tick={} 眼睛在流体→强制上浮：feetY={} surfaceY={} 改前motY={} shift={} onGround={} 脚下方块={}",
+                  level.isClientSide() ? "C" : "S", player.tickCount,
+                  player.getY(), surfaceY, mot.y, player.isShiftKeyDown(), player.onGround(),
+                  BuiltInRegistries.BLOCK.getKey(belowBlock.getBlock())
+               );
+               player.setDeltaMovement(mot.x * 0.5, Math.max(mot.y, 0.12), mot.z * 0.5);
+            }
          } else {
             double feetY = player.getY();
             double dy = feetY - surfaceY;
@@ -1173,20 +1255,11 @@ public class ModArmorSetHandler {
       boolean fullSet = hasFullTranscendiumSet(player);
       AttributeInstance waterEff = player.getAttribute(Attributes.WATER_MOVEMENT_EFFICIENCY);
       AttributeInstance moveEff = player.getAttribute(Attributes.MOVEMENT_EFFICIENCY);
-      if (waterEff != null) {
-         if (fullSet && waterEff.getModifier(TRANS_FLUID_EFFICIENCY_ID) == null) {
-            waterEff.addTransientModifier(new AttributeModifier(TRANS_FLUID_EFFICIENCY_ID, 1.0, Operation.ADD_VALUE));
-         } else if (!fullSet && waterEff.getModifier(TRANS_FLUID_EFFICIENCY_ID) != null) {
-            waterEff.removeModifier(TRANS_FLUID_EFFICIENCY_ID);
-         }
+      if (waterEff != null && waterEff.getModifier(TRANS_FLUID_EFFICIENCY_ID) != null) {
+         waterEff.removeModifier(TRANS_FLUID_EFFICIENCY_ID);
       }
-
-      if (moveEff != null) {
-         if (fullSet && moveEff.getModifier(TRANS_MOVEMENT_EFFICIENCY_ID) == null) {
-            moveEff.addTransientModifier(new AttributeModifier(TRANS_MOVEMENT_EFFICIENCY_ID, 1.0, Operation.ADD_VALUE));
-         } else if (!fullSet && moveEff.getModifier(TRANS_MOVEMENT_EFFICIENCY_ID) != null) {
-            moveEff.removeModifier(TRANS_MOVEMENT_EFFICIENCY_ID);
-         }
+      if (moveEff != null && moveEff.getModifier(TRANS_MOVEMENT_EFFICIENCY_ID) != null) {
+         moveEff.removeModifier(TRANS_MOVEMENT_EFFICIENCY_ID);
       }
    }
 
@@ -1280,6 +1353,8 @@ public class ModArmorSetHandler {
       boolean frostHelmet = helmet.is((Item)ModItems.FROST_METAL_HELMET.get());
       if (boots.is((Item)ModItems.TRANSCENDIUM_BOOTS.get()) && source.is(DamageTypes.FALL)) {
          return true;
+      } else if (transHelmet && source.is(DamageTypes.IN_WALL)) {
+         return true;
       } else if ((transHelmet || emberHelmet) && source.is(DamageTypeTags.IS_FIRE)) {
          return true;
       } else if (!transHelmet || !source.is(DamageTypeTags.IS_DROWNING) && !source.is(DamageTypeTags.IS_FREEZING)) {
@@ -1296,6 +1371,15 @@ public class ModArmorSetHandler {
          && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get())
          && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())
          && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.TRANSCENDIUM_BOOTS.get());
+   }
+
+   /**
+    * 飞行相位偏移（穿墙 + 观察者式视觉）的判定：
+    * 穿齐全套超限合金套 + 玩家真的在飞（mayfly=true 且 flying=true）。
+    * 关飞行、下地面、脱靴子任何一种都立即失去。
+    */
+   public static boolean isTranscendiumFlightPhasing(Player player) {
+      return hasFullTranscendiumSet(player) && player.getAbilities().flying;
    }
 
    public static boolean wearsHurtAnimationCancelArmor(Player player) {

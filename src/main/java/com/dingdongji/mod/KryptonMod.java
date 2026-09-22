@@ -8,6 +8,7 @@ import com.dingdongji.mod.event.ModEvents;
 import com.dingdongji.mod.event.ModRecipeHandler;
 import com.dingdongji.mod.event.ModifyDefaultComponentsHandler;
 import com.dingdongji.mod.init.ModParticles;
+import com.dingdongji.mod.init.ModRecipes;
 import com.dingdongji.mod.item.ModArmorMaterials;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
@@ -39,6 +40,7 @@ public class KryptonMod {
       ModParticles.PARTICLES.register(modEventBus);
       ModItems.ITEMS.register(modEventBus);
       ModComponents.COMPONENTS.register(modEventBus);
+      ModRecipes.RECIPE_SERIALIZERS.register(modEventBus);
       ModArmorMaterials.ARMOR_MATERIALS.register(modEventBus);
       ModMenuTypes.MENUS.register(modEventBus);
       ModCreativeTab.CREATIVE_MODE_TABS.register(modEventBus);
@@ -63,6 +65,7 @@ public class KryptonMod {
       gameBus.addListener(ModEvents::onTooltip);
       gameBus.addListener(ModEvents::onLivingDeath);
       gameBus.addListener(ModEvents::onItemAttributeModifier);
+      gameBus.addListener(com.dingdongji.mod.event.ModEndGatewayHandler::onEntityJoinLevel);
       gameBus.addListener(ModRecipeHandler::onServerStarted);
    }
 }

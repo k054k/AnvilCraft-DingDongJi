@@ -148,6 +148,12 @@ public class ModEvents {
       ItemStack stack = event.getItemStack();
       Player player = event.getEntity();
       ArrayList<Component> descLines = new ArrayList<>();
+      if (stack.is((Item)ModItems.SMALL_POUCH.get())) {
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch", 6).setStyle(GRAY_STYLE));
+      } else if (stack.is((Item)ModItems.BIG_POUCH.get())) {
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch", 12).setStyle(GRAY_STYLE));
+      }
+
       if (stack.has((DataComponentType)ModComponents.DEVOUR.get())) {
          DevourData data = (DevourData)stack.get((DataComponentType)ModComponents.DEVOUR.get());
          int kills = data.kills();
@@ -174,7 +180,7 @@ public class ModEvents {
       }
 
       if (isAnyJiArmor(stack)) {
-         descLines.add(Component.literal("穿着全套后提升玩家挖掘速度和方块交互距离").setStyle(JI_ARMOR_STYLE));
+         descLines.add(Component.literal("完整套装：提升玩家挖掘速度和方块交互距离").setStyle(SPECTRAL_SET_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.ROYAL_STEEL_AFFINITY.get())) {
@@ -227,6 +233,7 @@ public class ModEvents {
          || stack.is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())
          || stack.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
          descLines.add(Component.literal("偏执：根据已有魔咒的等级提升护甲值和盔甲韧性").setStyle(PARANOID_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.transcendium_set").setStyle(SPECTRAL_SET_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.MEANINGLESS.get())) {
@@ -265,16 +272,16 @@ public class ModEvents {
          descLines.add(Component.translatable("tooltip.dingdongji.frost_walk", new Object[]{frostKey}).setStyle(FROST_ABILITY_STYLE));
       }
 
+      if (stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         String phaseKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         descLines.add(Component.translatable("tooltip.dingdongji.spectral_phase", new Object[]{phaseKey}).setStyle(SPECTRAL_PHASE_STYLE));
+      }
+
       if (stack.is((Item)ModItems.SPECTRAL_HELMET.get())
          || stack.is((Item)ModItems.SPECTRAL_CHESTPLATE.get())
          || stack.is((Item)ModItems.SPECTRAL_LEGGINGS.get())
          || stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
          descLines.add(Component.translatable("tooltip.dingdongji.spectral_set").setStyle(SPECTRAL_SET_STYLE));
-      }
-
-      if (stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
-         String phaseKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.translatable("tooltip.dingdongji.spectral_phase", new Object[]{phaseKey}).setStyle(SPECTRAL_PHASE_STYLE));
       }
 
       if (!descLines.isEmpty()) {
