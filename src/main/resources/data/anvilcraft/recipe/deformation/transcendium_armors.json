@@ -1,9 +1,13 @@
-{
-  "type": "anvilcraft:deformation",
-  "inputs": [
-    "dingdongji:transcendium_helmet",
-    "dingdongji:transcendium_chestplate",
-    "dingdongji:transcendium_leggings",
-    "dingdongji:transcendium_boots"
-  ]
+﻿{
+    "inputs":  [
+                   "dingdongji:transcendium_helmet",
+                   "dingdongji:transcendium_chestplate",
+                   "dingdongji:transcendium_leggings",
+                   "dingdongji:transcendium_boots"
+               ],
+    "material":  {
+                     "cost":  2,
+                     "type":  "anvilcraft:repair_material"
+                 },
+    "type":  "anvilcraft:deformation"
 }

@@ -1,0 +1,18 @@
+﻿{
+    "input":  {
+                  "items":  "dingdongji:ji_leggings"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "predicate":  {
+                                                           "count":  1,
+                                                           "items":  "dingdongji:keji_block"
+                                                       },
+                                         "type":  "anvilcraft:custom"
+                                     },
+                        "result":  "minecraft:golden_leggings"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

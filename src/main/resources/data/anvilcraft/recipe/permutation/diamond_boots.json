@@ -1,0 +1,18 @@
+﻿{
+    "input":  {
+                  "items":  "minecraft:diamond_boots"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "predicate":  {
+                                                           "count":  1,
+                                                           "items":  "anvilcraft:royal_steel_ingot"
+                                                       },
+                                         "type":  "anvilcraft:custom"
+                                     },
+                        "result":  "dingdongji:royal_steel_boots"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

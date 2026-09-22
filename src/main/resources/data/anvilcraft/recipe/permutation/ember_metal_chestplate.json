@@ -1,0 +1,24 @@
+﻿{
+  "type": "anvilcraft:permutation",
+  "input": {
+    "items": "dingdongji:ember_metal_chestplate"
+  },
+  "options": [
+    {
+      "material": {
+        "type": "anvilcraft:custom",
+        "predicate": {
+          "count": 3,
+          "items": "anvilcraft:frost_metal_nugget"
+        }
+      },
+      "result": "dingdongji:frost_metal_chestplate"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:netherite_chestplate"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 {
   "required": false,
   "package": "com.dingdongji.mod.mixin",
+  "refmap": "dingdongji.refmap.json",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "mixins": [
@@ -18,6 +19,7 @@
     "RangedAttributeMixin",
     "GravityManagerMixin",
     "EntityAirDataAccessor",
+    "LivingEntityJumpingAccessor",
     "MixinAdjacentSmithingMenu",
     "MixinTranscendenceSmithingMenu",
     "MixinSmithingTemplateUsable",
@@ -30,7 +32,21 @@
     "MixinEntityBlockSlowdown",
     "MixinEntityGravity",
     "MixinAtmosphereDrag",
-    "MixinCanFreeze"
+    "MixinCanFreeze",
+    "MixinPlayerSpectralNoPhysics",
+    "MixinSpectralMoveCollision",
+    "MixinPlayerSpectralPose",
+    "MixinPocketInventoryCapacity",
+    "MixinPocketInventorySize",
+    "MixinPocketMenuSlots",
+    "MixinPocketSlotLayout",
+    "MixinPocketSlotAccess",
+    "MixinCraftingPouchRemainder",
+    "MixinPlayerTranscendiumFlightPhase",
+    "MixinTranscendiumNoSuffocation",
+    "MixinTranscendiumPhaseEntityCollision",
+    "MixinTranscendiumPhasePose",
+    "MixinTranscendiumPhaseRender"
   ],
   "client": [
     "AdjacentSmithingScreenMixin",
@@ -44,7 +60,8 @@
     "MixinGuiOverlays",
     "MixinLightTextureNightVision",
     "MixinNightVisionScale",
-    "MixinTextureAtlasPulse"
+    "MixinTextureAtlasPulse",
+    "MixinPocketScreenSupport"
   ],
   "injectors": {
     "defaultRequire": 0

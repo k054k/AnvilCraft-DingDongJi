@@ -36,7 +36,11 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       (Item)ModItems.TRANSCENDIUM_HELMET.get(),
       (Item)ModItems.TRANSCENDIUM_CHESTPLATE.get(),
       (Item)ModItems.TRANSCENDIUM_LEGGINGS.get(),
-      (Item)ModItems.TRANSCENDIUM_BOOTS.get()
+      (Item)ModItems.TRANSCENDIUM_BOOTS.get(),
+      (Item)ModItems.NEUTRON_SPACESUIT_HELMET.get(),
+      (Item)ModItems.NEUTRON_SPACESUIT_CHESTPLATE.get(),
+      (Item)ModItems.NEUTRON_SPACESUIT_LEGGINGS.get(),
+      (Item)ModItems.NEUTRON_SPACESUIT_BOOTS.get()
    );
    private static final float BREATH_PERIOD = 40.0F;
    private final HumanoidModel<T> innerModel;
@@ -65,12 +69,17 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
          || item == ModItems.EMBER_METAL_BOOTS.get()) {
          return EmissiveArmorLayer.BreathSet.EMBER;
       } else {
-         return item != ModItems.TRANSCENDIUM_HELMET.get()
-               && item != ModItems.TRANSCENDIUM_CHESTPLATE.get()
-               && item != ModItems.TRANSCENDIUM_LEGGINGS.get()
-               && item != ModItems.TRANSCENDIUM_BOOTS.get()
-            ? EmissiveArmorLayer.BreathSet.FROST
-            : EmissiveArmorLayer.BreathSet.TRANS;
+         return item == ModItems.TRANSCENDIUM_HELMET.get()
+               || item == ModItems.TRANSCENDIUM_CHESTPLATE.get()
+               || item == ModItems.TRANSCENDIUM_LEGGINGS.get()
+               || item == ModItems.TRANSCENDIUM_BOOTS.get()
+            ? EmissiveArmorLayer.BreathSet.TRANS
+         : item == ModItems.NEUTRON_SPACESUIT_HELMET.get()
+               || item == ModItems.NEUTRON_SPACESUIT_CHESTPLATE.get()
+               || item == ModItems.NEUTRON_SPACESUIT_LEGGINGS.get()
+               || item == ModItems.NEUTRON_SPACESUIT_BOOTS.get()
+            ? EmissiveArmorLayer.BreathSet.NEUTRON
+         : EmissiveArmorLayer.BreathSet.FROST;
       }
    }
 
@@ -178,7 +187,10 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
    private static enum BreathSet {
       EMBER(255, 250, 180, 215, 129, 3, GlowPhaseTracker.Outline.EMBER),
       FROST(255, 255, 255, 183, 197, 207, GlowPhaseTracker.Outline.FROST),
-      TRANS(255, 230, 255, 145, 25, 255, GlowPhaseTracker.Outline.TRANS);
+      TRANS(255, 230, 255, 145, 25, 255, GlowPhaseTracker.Outline.TRANS),
+      // Neutron suit screens breathe in the same blue family as the frost
+      // outline pulse so the phase stays in sync with nearby block animations.
+      NEUTRON(168, 214, 255, 64, 116, 224, GlowPhaseTracker.Outline.FROST);
 
       private final int[] rgb = new int[6];
       private final GlowPhaseTracker.Outline outline;

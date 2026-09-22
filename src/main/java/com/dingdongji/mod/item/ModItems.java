@@ -264,17 +264,40 @@ public class ModItems {
    );
 
    public static final DeferredItem<ArmorItem> SPECTRAL_HELMET = ITEMS.register(
-      "spectral_helmet", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.HELMET, new Properties().durability(vanillaArmor(Type.HELMET, 33)))
+      "spectral_helmet", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.HELMET, spectralArmorProperties(Type.HELMET))
    );
    public static final DeferredItem<ArmorItem> SPECTRAL_CHESTPLATE = ITEMS.register(
-      "spectral_chestplate", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.CHESTPLATE, new Properties().durability(vanillaArmor(Type.CHESTPLATE, 33)))
+      "spectral_chestplate", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.CHESTPLATE, spectralArmorProperties(Type.CHESTPLATE))
    );
    public static final DeferredItem<ArmorItem> SPECTRAL_LEGGINGS = ITEMS.register(
-      "spectral_leggings", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.LEGGINGS, new Properties().durability(vanillaArmor(Type.LEGGINGS, 33)))
+      "spectral_leggings", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.LEGGINGS, spectralArmorProperties(Type.LEGGINGS))
    );
    public static final DeferredItem<ArmorItem> SPECTRAL_BOOTS = ITEMS.register(
-      "spectral_boots", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.BOOTS, new Properties().durability(vanillaArmor(Type.BOOTS, 33)))
+      "spectral_boots", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.BOOTS, spectralArmorProperties(Type.BOOTS))
    );
+
+   // 中子航空套：耐候套上位，功能暂为占位，发光屏幕走光带渲染层。
+   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_HELMET = ITEMS.register(
+      "neutron_spacesuit_helmet",
+      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.HELMET, neutronSpacesuitProperties(Type.HELMET))
+   );
+   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_CHESTPLATE = ITEMS.register(
+      "neutron_spacesuit_chestplate",
+      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.CHESTPLATE, neutronSpacesuitProperties(Type.CHESTPLATE))
+   );
+   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_LEGGINGS = ITEMS.register(
+      "neutron_spacesuit_leggings",
+      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.LEGGINGS, neutronSpacesuitProperties(Type.LEGGINGS))
+   );
+   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_BOOTS = ITEMS.register(
+      "neutron_spacesuit_boots",
+      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.BOOTS, neutronSpacesuitProperties(Type.BOOTS))
+   );
+
+   /** 小口袋：7 皮革合成，给护腿 +6 栏位。 */
+   public static final DeferredItem<Item> SMALL_POUCH = ITEMS.register("small_pouch", () -> new PouchItem(new Properties()));
+   /** 深口袋：小口袋中心放小口袋合成，给护腿 +12 栏位。 */
+   public static final DeferredItem<Item> BIG_POUCH = ITEMS.register("big_pouch", () -> new PouchItem(new Properties()));
 
    public static boolean isCreateTemplate(ItemStack stack) {
       return !stack.isEmpty() && stack.is((Item)CREATE_TEMPLATE.get());
@@ -286,6 +309,24 @@ public class ModItems {
 
    private static Properties unbreakableArmor() {
       return new Properties().durability(2031).component(DataComponents.UNBREAKABLE, new Unbreakable(true));
+   }
+
+   /**
+    * 幻灵套装属性：耐久等同于铁套倍率15，附带无法破坏组件。
+    * durability 仅为兼容卸载组件后行为，实际不损耗。
+    */
+   private static Properties spectralArmorProperties(Type type) {
+      return new Properties()
+         .durability(vanillaArmor(type, 15))
+         .component(DataComponents.UNBREAKABLE, new Unbreakable(true));
+   }
+
+   /** 中子航空套：下界合金档耐久，防火，史诗稀有度。功能后续补齐。 */
+   private static Properties neutronSpacesuitProperties(Type type) {
+      return new Properties()
+         .durability(vanillaArmor(type, 37))
+         .fireResistant()
+         .rarity(Rarity.EPIC);
    }
 
    private static ItemAttributeModifiers createJiSwordAttributes() {

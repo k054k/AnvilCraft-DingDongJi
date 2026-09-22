@@ -1,12 +1,13 @@
-{
-  "type": "anvilcraft:deformation",
-  "material": {
-    "items": "dingdongji:keji_block"
-  },
-  "inputs": [
-    "dingdongji:ji_helmet",
-    "dingdongji:ji_chestplate",
-    "dingdongji:ji_leggings",
-    "dingdongji:ji_boots"
-  ]
+﻿{
+    "inputs":  [
+                   "dingdongji:ji_helmet",
+                   "dingdongji:ji_chestplate",
+                   "dingdongji:ji_leggings",
+                   "dingdongji:ji_boots"
+               ],
+    "material":  {
+                     "cost":  2,
+                     "type":  "anvilcraft:repair_material"
+                 },
+    "type":  "anvilcraft:deformation"
 }

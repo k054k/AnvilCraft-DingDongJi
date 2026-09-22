@@ -1,12 +1,13 @@
-{
-  "type": "anvilcraft:deformation",
-  "material": {
-    "items": "anvilcraft:frost_metal_ingot"
-  },
-  "inputs": [
-    "dingdongji:frost_metal_helmet",
-    "dingdongji:frost_metal_chestplate",
-    "dingdongji:frost_metal_leggings",
-    "dingdongji:frost_metal_boots"
-  ]
+﻿{
+    "inputs":  [
+                   "dingdongji:frost_metal_helmet",
+                   "dingdongji:frost_metal_chestplate",
+                   "dingdongji:frost_metal_leggings",
+                   "dingdongji:frost_metal_boots"
+               ],
+    "material":  {
+                     "cost":  2,
+                     "type":  "anvilcraft:repair_material"
+                 },
+    "type":  "anvilcraft:deformation"
 }

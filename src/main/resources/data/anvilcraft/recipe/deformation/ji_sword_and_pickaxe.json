@@ -1,7 +1,11 @@
-{
-  "type": "anvilcraft:deformation",
-  "inputs": [
-    "dingdongji:ji_sword",
-    "dingdongji:ji_pickaxe"
-  ]
+﻿{
+    "inputs":  [
+                   "dingdongji:ji_sword",
+                   "dingdongji:ji_pickaxe"
+               ],
+    "material":  {
+                     "cost":  1,
+                     "type":  "anvilcraft:repair_material"
+                 },
+    "type":  "anvilcraft:deformation"
 }

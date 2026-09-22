@@ -1,0 +1,18 @@
+﻿{
+    "input":  {
+                  "items":  "minecraft:golden_chestplate"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "predicate":  {
+                                                           "count":  1,
+                                                           "items":  "dingdongji:keji_block"
+                                                       },
+                                         "type":  "anvilcraft:custom"
+                                     },
+                        "result":  "dingdongji:ji_chestplate"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

@@ -27,6 +27,16 @@ public class ModCreativeTab {
                output.accept((ItemLike)ModItems.JI_CHESTPLATE.get());
                output.accept((ItemLike)ModItems.JI_LEGGINGS.get());
                output.accept((ItemLike)ModItems.JI_BOOTS.get());
+               output.accept((ItemLike)ModItems.SMALL_POUCH.get());
+               output.accept((ItemLike)ModItems.BIG_POUCH.get());
+               output.accept((ItemLike)ModItems.SPECTRAL_HELMET.get());
+               output.accept((ItemLike)ModItems.SPECTRAL_CHESTPLATE.get());
+               output.accept((ItemLike)ModItems.SPECTRAL_LEGGINGS.get());
+               output.accept((ItemLike)ModItems.SPECTRAL_BOOTS.get());
+               output.accept((ItemLike)ModItems.NEUTRON_SPACESUIT_HELMET.get());
+               output.accept((ItemLike)ModItems.NEUTRON_SPACESUIT_CHESTPLATE.get());
+               output.accept((ItemLike)ModItems.NEUTRON_SPACESUIT_LEGGINGS.get());
+               output.accept((ItemLike)ModItems.NEUTRON_SPACESUIT_BOOTS.get());
                output.accept((ItemLike)ModItems.ROYAL_STEEL_HELMET.get());
                output.accept((ItemLike)ModItems.ROYAL_STEEL_CHESTPLATE.get());
                output.accept((ItemLike)ModItems.ROYAL_STEEL_LEGGINGS.get());
@@ -43,10 +53,6 @@ public class ModCreativeTab {
                output.accept((ItemLike)ModItems.TRANSCENDIUM_CHESTPLATE.get());
                output.accept((ItemLike)ModItems.TRANSCENDIUM_LEGGINGS.get());
                output.accept((ItemLike)ModItems.TRANSCENDIUM_BOOTS.get());
-               output.accept((ItemLike)ModItems.SPECTRAL_HELMET.get());
-               output.accept((ItemLike)ModItems.SPECTRAL_CHESTPLATE.get());
-               output.accept((ItemLike)ModItems.SPECTRAL_LEGGINGS.get());
-               output.accept((ItemLike)ModItems.SPECTRAL_BOOTS.get());
                output.accept((ItemLike)ModItems.BLACK_HOLE_SWORD.get());
                output.accept((ItemLike)ModItems.WHITE_HOLE_SWORD.get());
                output.accept((ItemLike)ModItems.CREATE_TEMPLATE.get());

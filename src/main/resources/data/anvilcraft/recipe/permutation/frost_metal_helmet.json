@@ -1,0 +1,18 @@
+﻿{
+  "type": "anvilcraft:permutation",
+  "input": {
+    "items": "dingdongji:frost_metal_helmet"
+  },
+  "options": [
+    {
+      "material": {
+        "type": "anvilcraft:custom",
+        "predicate": {
+          "count": 3,
+          "items": "anvilcraft:ember_metal_nugget"
+        }
+      },
+      "result": "dingdongji:ember_metal_helmet"
+    }
+  ]
+}
