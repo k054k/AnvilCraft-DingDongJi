@@ -5,40 +5,7 @@ plugins {
     alias libs.plugins.modDevGradle
 }
 
-<<<<<<< HEAD
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
-}
-
-base {
-    archivesName = 'anvilcraft_dingdongji'
-}
-
-group = 'com.dingdongji'
 version = '0.0.9'
-
-repositories {
-    mavenLocal()
-    maven { url = 'https://maven.aliyun.com/repository/public/' }
-    maven { url = 'https://maven.neoforged.net/releases' }
-    // 本地 mod 依赖（铁砧工艺硬前置 jar）
-    flatDir {
-        dir 'libs'
-    }
-}
-
-dependencies {
-    implementation "net.neoforged:neoforge:${neo_version}"
-    // 铁砧工艺（AnvilCraft）：硬前置，编译期直接引用其类；userdev 自动重映射本地 mod jar
-    implementation "anvilcraft:anvilcraft-neoforge:1.21.1-1.6.0"
-    // JEI 仅编译期需要 API（@JeiPlugin 实现），运行期由独立 mod 提供，不打包
-    compileOnly fileTree(dir: 'libs', include: 'jei-*.jar')
-    // AnvilLib（砧库）：仅编译期引用其 registrum 分区 API；运行期由硬前置铁砧工艺
-    // 已 jarJar 内置的同版本 (snapshot.530) 提供，切勿打包进本 mod（附属通用做法）
-    compileOnly fileTree(dir: 'libs', include: 'anvillib-*.jar')
-}
-=======
-version = '0.0.8'
 group = maven_group
 
 apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"
@@ -49,7 +16,6 @@ apply from: "$rootDir/gradle/scripts/resources.gradle"
 apply from: "$rootDir/dependencies.gradle"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
->>>>>>> pr-6-buildrefactor
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
