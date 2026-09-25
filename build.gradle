@@ -1,8 +1,11 @@
 plugins {
     id 'java-library'
-    id 'net.neoforged.gradle.userdev' version '7.0.170'
+    id 'maven-publish'
+    id 'idea'
+    alias libs.plugins.modDevGradle
 }
 
+<<<<<<< HEAD
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
@@ -34,13 +37,25 @@ dependencies {
     // 已 jarJar 内置的同版本 (snapshot.530) 提供，切勿打包进本 mod（附属通用做法）
     compileOnly fileTree(dir: 'libs', include: 'anvillib-*.jar')
 }
+=======
+version = '0.0.8'
+group = maven_group
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 21
-}
+apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"
+apply from: "$rootDir/gradle/scripts/repositories.gradle"
+apply from: "$rootDir/gradle/scripts/jars.gradle"
+apply from: "$rootDir/gradle/scripts/publishing.gradle"
+apply from: "$rootDir/gradle/scripts/resources.gradle"
+apply from: "$rootDir/dependencies.gradle"
 
-// 跳过资源文件下载（编译JAR不需要纹理/音效）
-tasks.matching { it.name.contains("DownloadAssets") }.configureEach {
-    enabled = false
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+>>>>>>> pr-6-buildrefactor
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
 }

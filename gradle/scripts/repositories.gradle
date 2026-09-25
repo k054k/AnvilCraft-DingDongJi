@@ -1,0 +1,16 @@
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { // 阿里云镜像，国内加速
+        name = "Aliyun"
+        url = "https://maven.aliyun.com/repository/public/"
+    }
+    maven { // NeoForged
+        name = "NeoForged"
+        url = "https://maven.neoforged.net/releases"
+    }
+    // 本地 mod 依赖（铁砧工艺硬前置 jar）
+    flatDir {
+        dir 'libs'
+    }
+}

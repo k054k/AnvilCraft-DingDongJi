@@ -1,0 +1,9 @@
+dependencies {
+    // 铁砧工艺（AnvilCraft）：硬前置，编译期直接引用其类；flatDir 里的 jar 由 userdev 自动重映射
+    implementation "anvilcraft:anvilcraft-neoforge:1.21.1-1.6.0"
+    // JEI 仅编译期需要 API（@JeiPlugin 实现），运行期由独立 mod 提供，不打包
+    compileOnly fileTree(dir: 'libs', include: 'jei-*.jar')
+    // AnvilLib（砧库）：仅编译期引用其 registrum 分区 API；运行期由硬前置铁砧工艺
+    // 已 jarJar 内置的同版本提供，切勿打包进本 mod（附属通用做法）
+    compileOnly fileTree(dir: 'libs', include: 'anvillib-*.jar')
+}
