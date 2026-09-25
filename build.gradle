@@ -1,38 +1,27 @@
 plugins {
     id 'java-library'
-    id 'net.neoforged.gradle.userdev' version '7.0.170'
+    id 'maven-publish'
+    id 'idea'
+    alias libs.plugins.modDevGradle
 }
 
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
-}
-
-base {
-    archivesName = 'anvilcraft_dingdongji'
-}
-
-group = 'com.dingdongji'
 version = '0.0.8'
+group = maven_group
 
-repositories {
-    mavenLocal()
-    maven { url = 'https://maven.aliyun.com/repository/public/' }
-    maven { url = 'https://maven.neoforged.net/releases' }
-}
+apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"
+apply from: "$rootDir/gradle/scripts/repositories.gradle"
+apply from: "$rootDir/gradle/scripts/jars.gradle"
+apply from: "$rootDir/gradle/scripts/publishing.gradle"
+apply from: "$rootDir/gradle/scripts/resources.gradle"
+apply from: "$rootDir/dependencies.gradle"
 
-dependencies {
-    implementation "net.neoforged:neoforge:${neo_version}"
-    // 铁砧工艺（AnvilCraft）：编译期引用其锻造台/网络类
-    // 自动加载 libs 目录下所有 jar，避免写死文件名导致与 libs 中实际文件名不一致
-    implementation fileTree(dir: 'libs', include: '*.jar')
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 21
-}
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-// 跳过资源文件下载（编译JAR不需要纹理/音效）
-tasks.matching { it.name.contains("DownloadAssets") }.configureEach {
-    enabled = false
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
 }

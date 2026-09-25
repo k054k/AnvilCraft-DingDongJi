@@ -1,0 +1,6 @@
+[versions]
+neoForge = "21.1.43"
+modDevGradle = "2.0.142"
+
+[plugins]
+modDevGradle = { id = "net.neoforged.moddev", version.ref = "modDevGradle" }

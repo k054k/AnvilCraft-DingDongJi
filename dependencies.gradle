@@ -1,0 +1,5 @@
+dependencies {
+    // 铁砧工艺（AnvilCraft）：本模组通过反射与 mixin 与其交互，无编译期引用。
+    // 需要对照其源码编译时，把对应 1.6.x 的 jar 放到 libs/（该目录已在 .gitignore 中忽略）
+    implementation fileTree(dir: 'libs', include: '*.jar')
+}
