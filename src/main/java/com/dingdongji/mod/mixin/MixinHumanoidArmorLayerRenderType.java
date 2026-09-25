@@ -2,8 +2,8 @@ package com.dingdongji.mod.mixin;
 
 import com.dingdongji.mod.client.AfterimageManager;
 import com.dingdongji.mod.client.SpectralArmorRenderTypes;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -19,23 +19,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * 幻灵套盔甲渲染重定向，实现“半透明 + 自身重叠面剔除”。
  *
- * 时序（关键：两 pass 均走共享 buffer，借助 getBuffer 的链式 flush）：
- * - HEAD 注入：先获取 depth 类型 buffer 绘制同一模型；
- * - 原代码随后 getBuffer(translucent)：getBuffer 发现共享 buffer 上一
- *   类型是 depth，立即 flush depth（深度写入），再返回 translucent
- *   builder；
- * - 原代码 renderToBuffer 绘制半透明：背面比 depth 预写入的最近表面
- *   更远，LEQUAL 失败被剔除，只显示最前面。
- *
- * 注意：深度注入必须在 HEAD。若放在 getBuffer 之后，getBuffer(depth)
- * 会先结束/flush 掉原代码已获取但还没画的 translucent builder，随后
- * 原代码向已结束的 builder 写顶点，抛 IllegalStateException
- * ("Not building!")。
+ * 完全自控时序（不再依赖共享 buffer 的链式 flush）：
+ * - HEAD 注入且为幻灵贴图时：
+ *   1) buffers.endBatch() 强制先把主 buffer 中已累积的皮肤等批次画出，
+ *      保证后续深度预 pass 不会比皮肤先写深度（否则皮肤被 LEQUAL 剔除，
+ *      出现“两件同穿时腿部皮肤/盔甲消失”）；
+ *   2) 用独立 buffer 依次执行 深度 pass（只写深度）→ endBatch →
+ *      半透明 pass（LEQUAL，剔除自身背面）→ endBatch；
+ *   3) ci.cancel() 跳过原版 renderModel。
+ * 每件盔甲独立完成完整流程，件数、渲染顺序、BufferSource 内部实现
+ * 差异均不影响结果。
  *
  * 其他盔甲保持原版 armorCutoutNoCull 路径不变。
  */
 @Mixin(HumanoidArmorLayer.class)
 public abstract class MixinHumanoidArmorLayerRenderType {
+   /** 幻灵双 pass 专用独立 buffer，避免与主 BufferSource 的共享/排序行为耦合。 */
+   private static final MultiBufferSource.BufferSource DDJ_SPECTRAL_BUFFERS =
+      MultiBufferSource.immediate(new ByteBufferBuilder(1 << 21));
+
    private static boolean isSpectral(ResourceLocation texture) {
       return "dingdongji".equals(texture.getNamespace()) && texture.getPath().contains("spectral");
    }
@@ -45,7 +47,7 @@ public abstract class MixinHumanoidArmorLayerRenderType {
       at = @At("HEAD"),
       require = 1
    )
-   private void ddj$spectralDepthPrepass(
+   private void ddj$spectralRenderControlled(
       PoseStack pose,
       MultiBufferSource buffers,
       int packedLight,
@@ -54,10 +56,21 @@ public abstract class MixinHumanoidArmorLayerRenderType {
       ResourceLocation texture,
       CallbackInfo ci
    ) {
-      if (isSpectral(texture) && !AfterimageManager.isRenderingAfterimage()) {
-         VertexConsumer depthConsumer = buffers.getBuffer(SpectralArmorRenderTypes.spectralArmorDepth(texture));
-         model.renderToBuffer(pose, depthConsumer, packedLight, OverlayTexture.NO_OVERLAY, tint);
+      if (!isSpectral(texture) || AfterimageManager.isRenderingAfterimage()) {
+         return;
       }
+      // 1. 先把皮肤等已累积批次画出，确保皮肤深度先于盔甲深度写入
+      if (buffers instanceof MultiBufferSource.BufferSource bs) {
+         bs.endBatch();
+      }
+      // 2. 独立 buffer 内按序执行两个 pass
+      MultiBufferSource.BufferSource own = DDJ_SPECTRAL_BUFFERS;
+      model.renderToBuffer(pose, own.getBuffer(SpectralArmorRenderTypes.spectralArmorDepth(texture)), packedLight, OverlayTexture.NO_OVERLAY, tint);
+      own.endBatch();
+      model.renderToBuffer(pose, own.getBuffer(SpectralArmorRenderTypes.spectralArmor(texture)), packedLight, OverlayTexture.NO_OVERLAY, tint);
+      own.endBatch();
+      // 3. 原版路径整体跳过
+      ci.cancel();
    }
 
    @Redirect(
@@ -68,8 +81,7 @@ public abstract class MixinHumanoidArmorLayerRenderType {
       )
    )
    private RenderType ddj$spectralTranslucentArmor(ResourceLocation texture) {
-      return isSpectral(texture) && !AfterimageManager.isRenderingAfterimage()
-         ? SpectralArmorRenderTypes.spectralArmor(texture)
-         : RenderType.armorCutoutNoCull(texture);
+      // 幻灵走 HEAD 注入的 cancel 分支，不会执行到这里；虚影渲染时回退原版。
+      return RenderType.armorCutoutNoCull(texture);
    }
 }

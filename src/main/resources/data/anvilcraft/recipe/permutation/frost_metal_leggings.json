@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "anvilcraft:permutation",
   "input": {
     "items": "dingdongji:frost_metal_leggings"
@@ -13,6 +13,12 @@
         }
       },
       "result": "dingdongji:ember_metal_leggings"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "dingdongji:royal_steel_leggings"
     }
   ]
 }

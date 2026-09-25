@@ -74,7 +74,6 @@ public abstract class MixinPocketMenuSlots {
             Object pocketSlot = pocketCtor.newInstance(owner, i);
             ddj$addSlotMethod.invoke(this, pocketSlot);
          }
-         LOGGER.info("[DingDongJi][口袋] 已补充 PocketSlot index 12..23（物理槽总数 24）");
       } catch (Throwable t) {
          LOGGER.warn("[DingDongJi][口袋] 补充深口袋槽位失败", t);
       }

@@ -1,4 +1,4 @@
-﻿{
+{
   "type": "anvilcraft:permutation",
   "input": {
     "items": "dingdongji:frost_metal_chestplate"
@@ -13,6 +13,12 @@
         }
       },
       "result": "dingdongji:ember_metal_chestplate"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "dingdongji:royal_steel_chestplate"
     }
   ]
 }

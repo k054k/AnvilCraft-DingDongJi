@@ -44,12 +44,14 @@ public final class SpectralArmorRenderTypes {
          () -> RenderSystem.depthMask(true)
       );
 
-   /** pass B 用：开启半透明混合，但不关闭深度写入，并显式保证 depthMask(true)。 */
+   /** pass B 用：开启半透明混合，但 depthMask(false) 不写深度——写深度会导致
+    * 多件同穿时先 flush 的批次（如护腿）把深度写进缓冲，后续才 flush 的皮肤
+    * 批次被 LEQUAL 剔除，出现"皮肤消失"。自身重叠面剔除由 pass A 负责。 */
    private static final RenderStateShard.TransparencyStateShard TRANSLUCENT_WITH_DEPTH =
       new RenderStateShard.TransparencyStateShard(
          "spectral_translucent_depth",
          () -> {
-            RenderSystem.depthMask(true);
+            RenderSystem.depthMask(false);
             RenderSystem.enableBlend();
             RenderSystem.blendFuncSeparate(
                GlStateManager.SourceFactor.SRC_ALPHA,

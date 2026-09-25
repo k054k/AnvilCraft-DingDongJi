@@ -16,7 +16,6 @@
     "PermutationRecipeMixin",
     "DeformationRecipeMixin",
     "FallingBlockEntityMixin",
-    "RangedAttributeMixin",
     "GravityManagerMixin",
     "EntityAirDataAccessor",
     "LivingEntityJumpingAccessor",
@@ -46,7 +45,8 @@
     "MixinTranscendiumNoSuffocation",
     "MixinTranscendiumPhaseEntityCollision",
     "MixinTranscendiumPhasePose",
-    "MixinTranscendiumPhaseRender"
+    "MixinBlockItemSelfPlace",
+    "MixinPlayerWallDigSpeed"
   ],
   "client": [
     "AdjacentSmithingScreenMixin",
@@ -60,8 +60,9 @@
     "MixinGuiOverlays",
     "MixinLightTextureNightVision",
     "MixinNightVisionScale",
-    "MixinTextureAtlasPulse",
-    "MixinPocketScreenSupport"
+    "MixinPocketScreenSupport",
+    "MixinCreativePocketScreenSupport",
+    "MixinCreativeSlotWrapper"
   ],
   "injectors": {
     "defaultRequire": 0

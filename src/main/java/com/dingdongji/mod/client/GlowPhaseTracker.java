@@ -12,7 +12,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -28,16 +27,20 @@ import org.slf4j.LoggerFactory;
  * Drives the emissive armor glow from the actual animation definitions of the
  * metal block outline textures that AnvilCraft ships in the game.
  *
- * Nothing is read from blocks placed in the world, and no private rendering
- * classes are touched: when the block atlas is stitched, the three outline
- * sprites already exist as resources, so we read their .png.mcmeta animation
- * data (frame order, per-frame time, interpolate flag) straight from the
- * resource packs and replay it ourselves.
+ * The .png.mcmeta animation data (frame order, per-frame time, interpolate
+ * flag) is read straight from the resource packs when the block atlas is
+ * stitched, then replayed by ourselves.
  *
- * The pulse comes from TextureAtlas.cycleAnimationFrames, the exact call the
- * game uses to advance those sprites, so both start at the same stitch origin
- * and tick in lockstep. A client-tick fallback keeps the clock alive if a
- * third-party renderer replaces that path.
+ * <h3>Clock source: client tick, never frame rate</h3>
+ * The pulse advances exactly once per client tick (20 TPS), which is the same
+ * clock TextureManager uses to tick animated sprites. It must NOT be counted
+ * from {@code TextureAtlas.cycleAnimationFrames}: shader mods (Iris style
+ * pipelines) can drive that method at render frame rate, in which case a
+ * "once per tick" guard reset on the tick boundary still leaks one extra
+ * pulse per rendered frame after the reset, making the whole animation play
+ * at FPS speed. Frame-rate independence comes for free at 20 TPS, and the
+ * interpolate branch is evaluated with partialTicks so high-FPS rendering
+ * stays smooth.
  */
 @EventBusSubscriber({Dist.CLIENT})
 public final class GlowPhaseTracker {
@@ -83,18 +86,20 @@ public final class GlowPhaseTracker {
 
       // Returns darkness in [0,1] (0 = bright sheet frame, 1 = darkest sheet
       // frame) at the given animation pulse, following the mcmeta semantics.
-      private float darknessAt(long pulse) {
+      // pulse is fractional so render partialTicks can interpolate inside a
+      // tick, which keeps the glow smooth at high frame rates.
+      private float darknessAt(float pulse) {
          if (this.period <= 0) {
             return 0.0F;
          }
 
-         long t = pulse % (long)this.period;
-         int elapsed = 0;
+         float t = pulse % (float)this.period;
+         float elapsed = 0.0F;
 
          for (int i = 0; i < this.frames.size(); i++) {
             FrameEntry entry = this.frames.get(i);
-            if (t < (long)(elapsed + entry.time()) || i == this.frames.size() - 1) {
-               long sub = t - (long)elapsed;
+            if (t < elapsed + (float)entry.time() || i == this.frames.size() - 1) {
+               float sub = t - elapsed;
                float base = (float)entry.index() / (float)this.maxIndex;
                if (!this.interpolate || entry.time() <= 0) {
                   return base;
@@ -102,10 +107,10 @@ public final class GlowPhaseTracker {
 
                FrameEntry next = this.frames.get((i + 1) % this.frames.size());
                float toward = (float)next.index() / (float)this.maxIndex;
-               return Mth.clamp(base + (toward - base) * ((float)sub / (float)entry.time()), 0.0F, 1.0F);
+               return Mth.clamp(base + (toward - base) * (sub / (float)entry.time()), 0.0F, 1.0F);
             }
 
-            elapsed += entry.time();
+            elapsed += (float)entry.time();
          }
 
          return 0.0F;
@@ -113,16 +118,15 @@ public final class GlowPhaseTracker {
    }
 
    private static final Map<Outline, Timeline> TIMELINES = new EnumMap<>(Outline.class);
-   private static TextureAtlas blockAtlas;
    private static long pulse;
-   private static boolean pulsedThisClientTick;
 
    private GlowPhaseTracker() {
    }
 
    @SubscribeEvent
    public static void onAtlasStitched(TextureAtlasStitchedEvent event) {
-      // Never let resource parsing abort the resource reload / main menu.
+      // Only the mcmeta resources are read here; the running clock is ticked
+      // in onClientTickPost and intentionally never touches the atlas.
       try {
          if (!event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)) {
             return;
@@ -140,9 +144,7 @@ public final class GlowPhaseTracker {
          if (!parsed.isEmpty()) {
             TIMELINES.clear();
             TIMELINES.putAll(parsed);
-            blockAtlas = event.getAtlas();
             pulse = 0L;
-            pulsedThisClientTick = false;
          }
       } catch (Throwable t) {
          LOGGER.warn("Failed to parse glow outline animation metadata, using fallback breathing", t);
@@ -195,30 +197,20 @@ public final class GlowPhaseTracker {
       }
    }
 
-   public static void onAtlasPulse(TextureAtlas atlas) {
-      if (atlas == blockAtlas && !pulsedThisClientTick) {
-         pulse++;
-         pulsedThisClientTick = true;
-      }
-   }
-
    @SubscribeEvent
    public static void onClientTickPost(ClientTickEvent.Post event) {
-      // Fallback for renderers that replace cycleAnimationFrames: keep the
-      // canonical clock advancing once per client tick.
-      if (blockAtlas != null && !pulsedThisClientTick) {
-         pulse++;
-      }
-
-      pulsedThisClientTick = false;
+      // Exactly one pulse per client tick (20 TPS), independent of FPS and of
+      // any shader pipeline re-driving atlas animations per rendered frame.
+      pulse++;
    }
 
    /**
-    * Returns darkness in [0,1] for the given outline at the current game
-    * animation pulse, or -1 if the sprite definition has not been loaded yet.
+    * Returns darkness in [0,1] for the given outline at the current tick pulse
+    * advanced into the frame by partialTicks, or -1 if the sprite definition
+    * has not been loaded yet.
     */
-   public static float darkness(Outline outline) {
+   public static float darkness(Outline outline, float partialTicks) {
       Timeline timeline = TIMELINES.get(outline);
-      return timeline == null ? -1.0F : timeline.darknessAt(pulse);
+      return timeline == null ? -1.0F : timeline.darknessAt((float)pulse + partialTicks);
    }
 }

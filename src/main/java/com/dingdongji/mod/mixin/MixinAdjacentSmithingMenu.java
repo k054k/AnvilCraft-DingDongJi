@@ -3,6 +3,7 @@ package com.dingdongji.mod.mixin;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.CreateTemplateMode;
+import com.dingdongji.mod.util.CreateTemplatePinOrder;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,12 +64,24 @@ public abstract class MixinAdjacentSmithingMenu {
          }
 
          templates.remove(createIdx);
-         templates.addAll(0, expansion);
+         // The authoritative (server) catalog always keeps the natural order;
+         // client-side pinning is presentation-only (CreateTemplatePinOrder).
+         templates.addAll(createIdx, expansion);
          Field dirtyField = clazz.getDeclaredField("templateDataDirty");
          dirtyField.setAccessible(true);
          dirtyField.setBoolean(this, true);
       } catch (Exception var12) {
       }
+   }
+
+   @Inject(
+      method = {"handleTemplateSync"},
+      at = {@At("TAIL")},
+      remap = false
+   )
+   private void ddj$applyClientPinOrder(CallbackInfo ci) {
+      // The field now holds the mapped natural-order list the screen renders.
+      CreateTemplatePinOrder.onSynced(this);
    }
 
    private static List<CreateTemplateMode> ddj$modesForTable(Object menu) {

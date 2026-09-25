@@ -4,9 +4,7 @@ import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.component.PouchCapacityComponent;
 import com.mojang.logging.LogUtils;
 import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -48,7 +46,6 @@ public class PouchDecoration implements IItemDecorator {
       ResourceLocation.fromNamespaceAndPath("dingdongji", "textures/item/big_pouch_badge.png");
 
    private static Field decoratorListField;
-   private static final Set<String> yieldLogged = new HashSet<>();
 
    private PouchDecoration() {
    }
@@ -93,10 +90,6 @@ public class PouchDecoration implements IItemDecorator {
             (List<IItemDecorator>) decoratorListField.get(handler);
          for (IItemDecorator other : all) {
             if (other != INSTANCE) {
-               String key = stack.getItem() + " -> " + other.getClass().getName();
-               if (yieldLogged.add(key)) {
-                  LOGGER.info("[DingDongJi][角标] 检测到同物品其他装饰器，角标自动让位：{}", key);
-               }
                return true;
             }
          }

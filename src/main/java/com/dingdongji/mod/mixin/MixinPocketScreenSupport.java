@@ -1,7 +1,6 @@
 package com.dingdongji.mod.mixin;
 
 import com.dingdongji.mod.util.AnvilCraftCompat;
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,7 +11,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import org.objectweb.asm.Opcodes;
-import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -46,7 +44,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(value = InventoryScreen.class, priority = 2000)
 public abstract class MixinPocketScreenSupport extends AbstractContainerScreen<InventoryMenu> {
-   private static final Logger LOGGER = LogUtils.getLogger();
    private static final ResourceLocation PANEL_5ROWS_TEXTURE =
       ResourceLocation.fromNamespaceAndPath("dingdongji", "textures/gui/deep_pockets_panel.png");
    private static final ResourceLocation PANEL_5ROWS_TEXTURE_RIGHT =
@@ -100,20 +97,11 @@ public abstract class MixinPocketScreenSupport extends AbstractContainerScreen<I
       if (player != null) {
          int cap = AnvilCraftCompat.getPocketCapacity(player);
          if (cap > 12) {
-            if (!ddj$thresholdLogged) {
-               ddj$thresholdLogged = true;
-               LOGGER.info(
-                  "[DingDongJi][口袋] 竖面板阈值生效：容量={} 阈值={}（width {} 按 {} 比较）",
-                  cap, TARGET_THRESHOLD, width, ANVIL_THRESHOLD
-               );
-            }
             return width + (ANVIL_THRESHOLD - TARGET_THRESHOLD);
          }
       }
       return width;
    }
-
-   private boolean ddj$thresholdLogged;
 
    /** renderBg TAIL：在铁砧窄面板上覆盖绘制 44 宽高面板。 */
    @Inject(method = "renderBg", at = @At("TAIL"))
@@ -140,13 +128,7 @@ public abstract class MixinPocketScreenSupport extends AbstractContainerScreen<I
          PANEL_WIDTH, h,
          PANEL_WIDTH, h
       );
-      if (!ddj$drawLogged) {
-         ddj$drawLogged = true;
-         LOGGER.info("[DingDongJi][口袋] 深口袋竖面板绘制：容量={} 44x{} topOffset={}", cap, h, topOff);
-      }
    }
-
-   private boolean ddj$drawLogged;
 
    /** hasClickedOutside RETURN：高面板区域不算 outside。 */
    @Inject(

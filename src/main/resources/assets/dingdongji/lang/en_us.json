@@ -1,6 +1,10 @@
 {
   "dingdongji.configuration.glowBandEnabled": "Armor Glow Band & Breathing Light",
   "dingdongji.configuration.glowBandEnabled.tooltip": "The glowing band overlay on the metal armor sets. Turn this off if the band renders black or invisible on your GPU.",
+  "dingdongji.configuration.createTemplatePinEnabled": "Pin Create Template in Smithing Tables",
+  "dingdongji.configuration.createTemplatePinEnabled.tooltip": "When enabled, the create template (and its mode variants) is pinned to the first slot of the template catalog in the Royal/Ember/Frost/Transcendence smithing tables. Turn off to keep it at its natural position.",
+  "dingdongji.configuration.flightAfterimageEnabled": "Over-Speed Flight Afterimage",
+  "dingdongji.configuration.flightAfterimageEnabled.tooltip": "When enabled, players flying over-speed in Transcendium Boots leave a purple afterimage trail.",
   "block.dingdongji.ji_anvil": "Ji Anvil",
   "block.dingdongji.keji_block": "Keji Block",
   "item.dingdongji.ji_upgrade": "Template",
@@ -30,12 +34,8 @@
   "item.dingdongji.spectral_chestplate": "Spectral Chestplate",
   "item.dingdongji.spectral_leggings": "Spectral Leggings",
   "item.dingdongji.spectral_boots": "Spectral Boots",
-  "item.dingdongji.neutron_spacesuit_helmet": "Neutron Spacesuit Helmet",
-  "item.dingdongji.neutron_spacesuit_chestplate": "Neutron Spacesuit Chestplate",
-  "item.dingdongji.neutron_spacesuit_leggings": "Neutron Spacesuit Leggings",
-  "item.dingdongji.neutron_spacesuit_boots": "Neutron Spacesuit Boots",
-  "item.dingdongji.small_pouch": "Small Pouch",
-  "item.dingdongji.big_pouch": "Deep Pouch",
+  "item.dingdongji.small_pouch": "Extended Pouch",
+  "item.dingdongji.big_pouch": "Extended Deep Pouch",
   "tooltip.dingdongji.pouch": "Craft with leggings to add %s pocket slots",
   "item.dingdongji.black_hole_sword": "Black Hole Sword",
   "item.dingdongji.white_hole_sword": "White Hole Sword",
@@ -57,7 +57,7 @@
   "screen.dingdongji.create_template.additions_slot_description": "Add recipe materials",
   "tooltip.dingdongji.ji_anvil.desc": "Breaks enchantment level limits, level-squared cost growth, 10% chance to double enchantments, 20% chance to add curse",
   "tooltip.dingdongji.ji_set": "Wearing full set increases mining speed and block interaction range",
-  "tooltip.dingdongji.transcendium_set": "Full Set: Immune to planetary gravity, phase-shift when flying",
+  "tooltip.dingdongji.transcendium_set": "Full Set: Ignore planetary gravity, phase-shift when flying",
   "tooltip.dingdongji.devour": "Devour: Kill mobs to increase weapon damage, formula %s",
   "tooltip.dingdongji.devour.detail": "Kills: %d | Bonus damage: +%s",
   "tooltip.dingdongji.accumulate": "Burst: Accumulates energy in inventory, +0.2 damage/sec, halved on attack",
@@ -90,5 +90,6 @@
   "tooltip.dingdongji.meaningless.shifting": "Meaningless: Disables all enchantments except specific ones (%s) and converts them into armor and toughness",
   "tooltip.dingdongji.property.meaningless.curse": "all curses",
   "screen.anvilcraft.cfa.class.special.krypton.golden_ji_planet": "Golden Ji Planet",
-  "tooltip.dingdongji.stride_void_enhanced": "Stride Void: Creative flight while worn, press [%s] to toggle overspeed flight; Ignore fall damage, block slowdown and block friction; Walk on the void floor and on fluids"
+  "tooltip.dingdongji.stride_void_enhanced": "Stride Void: Creative flight while worn, press [%s] to toggle overspeed flight; sprint-fly while airborne; Ignore fall damage, block slowdown and block friction; Walk on the void floor and on fluids",
+  "jei.category.dingdongji.item_portal_conversion": "Items Dropped Into Portal"
 }

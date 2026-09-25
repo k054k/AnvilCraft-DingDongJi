@@ -150,8 +150,10 @@ public class ModEvents {
       ArrayList<Component> descLines = new ArrayList<>();
       if (stack.is((Item)ModItems.SMALL_POUCH.get())) {
          descLines.add(Component.translatable("tooltip.dingdongji.pouch", 6).setStyle(GRAY_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch.detach").setStyle(GRAY_STYLE));
       } else if (stack.is((Item)ModItems.BIG_POUCH.get())) {
          descLines.add(Component.translatable("tooltip.dingdongji.pouch", 12).setStyle(GRAY_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch.detach").setStyle(GRAY_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.DEVOUR.get())) {

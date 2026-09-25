@@ -71,17 +71,6 @@ public class ModArmorMaterials {
             map.put(Type.BOOTS, 0);
          }), 15, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.of(new ItemLike[]{Items.IRON_INGOT}), List.of(new Layer(KryptonMod.modLoc("spectral"))), 0.0F, 0.0F)
    );
-   // Neutron spacesuit: upgraded weatherproof suit. Placeholder stats until its
-   // abilities are ported; repaired with transcendium ingots.
-   public static final DeferredHolder<ArmorMaterial, ArmorMaterial> NEUTRON_SPACESUIT = ARMOR_MATERIALS.register(
-      "neutron_spacesuit", () -> new ArmorMaterial((Map)Util.make(new EnumMap(Type.class), map -> {
-            map.put(Type.HELMET, 3);
-            map.put(Type.CHESTPLATE, 8);
-            map.put(Type.LEGGINGS, 6);
-            map.put(Type.BOOTS, 3);
-         }), 15, SoundEvents.ARMOR_EQUIP_NETHERITE, () -> anvilCraftItem("transcendium_ingot"), List.of(new Layer(KryptonMod.modLoc("neutron_spacesuit"))), 2.0F, 0.05F)
-   );
-
    public static Holder<ArmorMaterial> holder(DeferredHolder<ArmorMaterial, ArmorMaterial> deferred) {
       return BuiltInRegistries.ARMOR_MATERIAL.getHolderOrThrow(deferred.getKey());
    }

@@ -62,11 +62,6 @@ public class AnvilCraftCompat {
                LOGGER.warn("[DingDongJi] 无法反射获取 Providence.INSTANCE", var4);
             }
          }
-
-         LOGGER.info(
-            "[DingDongJi] AnvilCraftCompat 初始化: reforging={}, eternal={}, providence={}",
-            new Object[]{cachedReforging != null, cachedEternal != null, cachedProvidence != null}
-         );
       }
    }
 
@@ -112,19 +107,6 @@ public class AnvilCraftCompat {
       };
       PouchCapacityComponent comp = leggings.get(ModComponents.POUCH_CAPACITY.get());
       int pouch = comp != null ? comp.capacity() : 0;
-      int result = base + pouch;
-      // 调试日志：容量结果变化时才打印（该方法每帧可能被多次调用）
-      if (result != lastLoggedCapacity || !itemId.equals(lastLoggedLeggingsId)) {
-         lastLoggedCapacity = result;
-         lastLoggedLeggingsId = itemId;
-         LOGGER.info(
-            "[DingDongJi][口袋] 护腿={} 基础容量={} 口袋组件={} → 总容量={}",
-            itemId, base, pouch, result
-         );
-      }
-      return result;
+      return base + pouch;
    }
-
-   private static int lastLoggedCapacity = -1;
-   private static String lastLoggedLeggingsId = "";
 }

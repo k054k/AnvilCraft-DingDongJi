@@ -42,12 +42,6 @@ public class ModifyDefaultComponentsHandler {
          setProvidence(event, (Item)ModItems.TRANSCENDIUM_LEGGINGS.get());
          setProvidence(event, (Item)ModItems.TRANSCENDIUM_BOOTS.get());
          setEternal(event, (Item)ModItems.CREATE_TEMPLATE.get());
-         LOGGER.info(
-            "[DingDongJi] 物品组件修改完成 (reforging={}, eternal={}, providence={})",
-            new Object[]{cachedReforging != null, cachedEternal != null, cachedProvidence != null}
-         );
-      } else {
-         LOGGER.info("[DingDongJi] AnvilCraft 组件未加载，跳过组件修改");
       }
    }
 
@@ -64,12 +58,7 @@ public class ModifyDefaultComponentsHandler {
 
             cachedEternal = readStaticField(modComponentsClass, "ETERNAL");
             cachedProvidence = readStaticField(modComponentsClass, "PROVIDENCE");
-            LOGGER.info(
-               "[DingDongJi] ModComponents 反射读取: reforging={}, eternal={}, providence={}",
-               new Object[]{cachedReforging != null, cachedEternal != null, cachedProvidence != null}
-            );
          } catch (ClassNotFoundException var4) {
-            LOGGER.info("[DingDongJi] AnvilCraft ModComponents 类不存在，AnvilCraft 可能未安装");
             return;
          }
 

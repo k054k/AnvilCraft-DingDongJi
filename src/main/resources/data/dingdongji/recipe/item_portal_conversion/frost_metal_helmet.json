@@ -1,0 +1,11 @@
+{
+  "type": "dingdongji:item_portal_conversion",
+  "input": {
+    "item": "dingdongji:frost_metal_helmet"
+  },
+  "portal": "minecraft:end_portal",
+  "result": {
+    "id": "dingdongji:spectral_helmet",
+    "chance": 1
+  }
+}

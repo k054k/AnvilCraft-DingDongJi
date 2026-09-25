@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "dingdongji:item/neutron_spacesuit_leggings"
-  }
-}

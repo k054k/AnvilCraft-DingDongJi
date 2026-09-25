@@ -10,7 +10,6 @@ import com.dingdongji.mod.mixin.EntityAirDataAccessor;
 import com.dingdongji.mod.network.AbilityStateSyncPacket;
 import com.dingdongji.mod.network.IonocraftBootsFlyingPacket;
 import com.dingdongji.mod.util.AnvilCraftCompat;
-import com.mojang.logging.LogUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +24,6 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -78,10 +76,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEven
 import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent.Pre;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.slf4j.Logger;
 
 public class ModArmorSetHandler {
-   private static final Logger LOGGER = LogUtils.getLogger();
    private static final int EFFECT_DURATION = 6000;
    private static final Map<UUID, Boolean> LAVA_WALKER_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> FROST_SLIDE_ENABLED = new HashMap<>();
@@ -312,7 +308,7 @@ public class ModArmorSetHandler {
          boolean enabled = COMFORTABLE_ENABLED.getOrDefault(uuid, false);
          enabled = !enabled;
          COMFORTABLE_ENABLED.put(uuid, enabled);
-         player.displayClientMessage(actionMessage("舒适", enabled ? "开" : "关", ChatFormatting.GREEN), true);
+         player.displayClientMessage(actionMessage("舒适", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
          saveToggleStates(player);
       }
    }
@@ -478,7 +474,9 @@ public class ModArmorSetHandler {
    public static void applyVerticalPhase(Player player, boolean jumpDown, boolean sneakDown) {
       AABB box = player.getBoundingBox();
       double dy = 0.0;
-      if (jumpDown) {
+      if (jumpDown && sneakDown) {
+         // 跳跃+潜行同按：悬停（dy 保持 0），方便在方块内停留观察/放置方块
+      } else if (jumpDown) {
          double highestTop = highestClippingBlockTop(player, box.deflate(1.0E-4));
          if (highestTop != Double.NEGATIVE_INFINITY) {
             if (player.getY() + 0.2 >= highestTop) {
@@ -640,10 +638,6 @@ public class ModArmorSetHandler {
 
             if (player.isShiftKeyDown() && fluidAtFeet) {
                FLUID_SWIM.add(uuid);
-               LOGGER.info(
-                  "[DingDongJi][流体] side={} tick={} 按shift进入下潜模式 FLUID_SWIM",
-                  level.isClientSide() ? "C" : "S", player.tickCount
-               );
                player.setOnGround(false);
                player.fallDistance = 0.0F;
             } else {
@@ -735,11 +729,6 @@ public class ModArmorSetHandler {
                } else {
                   double feetY = player.getY();
                   if (feetY <= surfaceY + 0.1 && feetY >= surfaceY - 0.6) {
-                     LOGGER.info(
-                        "[DingDongJi][流体] side={} tick={} moveTAIL夹到液面：feetY={} surfaceY={} motY={}",
-                        player.level().isClientSide() ? "C" : "S", player.tickCount,
-                        feetY, surfaceY, mot.y
-                     );
                      player.setPos(player.getX(), surfaceY, player.getZ());
                      player.setDeltaMovement(mot.x, 0.0, mot.z);
                      player.setOnGround(true);
@@ -766,20 +755,7 @@ public class ModArmorSetHandler {
             // 失效，完全交还给原版游泳物理（空格上浮 / Shift 下潜）。
             boolean fullySubmerged = isWalkableFluid(level.getFluidState(feetPos), walkAny, walkLava);
             Vec3 mot = player.getDeltaMovement();
-            if (fullySubmerged) {
-               LOGGER.info(
-                  "[DingDongJi][流体] side={} tick={} 全身浸没→强制上浮失效：feetY={} surfaceY={} motY={} shift={}",
-                  level.isClientSide() ? "C" : "S", player.tickCount,
-                  player.getY(), surfaceY, mot.y, player.isShiftKeyDown()
-               );
-            } else {
-               BlockState belowBlock = level.getBlockState(feetPos.below());
-               LOGGER.info(
-                  "[DingDongJi][流体] side={} tick={} 眼睛在流体→强制上浮：feetY={} surfaceY={} 改前motY={} shift={} onGround={} 脚下方块={}",
-                  level.isClientSide() ? "C" : "S", player.tickCount,
-                  player.getY(), surfaceY, mot.y, player.isShiftKeyDown(), player.onGround(),
-                  BuiltInRegistries.BLOCK.getKey(belowBlock.getBlock())
-               );
+            if (!fullySubmerged) {
                player.setDeltaMovement(mot.x * 0.5, Math.max(mot.y, 0.12), mot.z * 0.5);
             }
          } else {

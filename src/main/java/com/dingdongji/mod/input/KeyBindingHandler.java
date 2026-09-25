@@ -1,6 +1,6 @@
 package com.dingdongji.mod.input;
 
-import com.dingdongji.mod.client.screen.CreateTemplateWheelScreen;
+import com.dingdongji.mod.client.CreateTemplateWheel;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.CreateTemplateMode;
@@ -35,11 +35,17 @@ public class KeyBindingHandler {
          long window = mc.getWindow().getWindow();
          boolean altDown = GLFW.glfwGetKey(window, 342) == 1 || GLFW.glfwGetKey(window, 346) == 1;
          if (altDown && !altWheelOpened && mc.screen == null) {
-            if (mc.player.getMainHandItem().is((Item)ModItems.CREATE_TEMPLATE.get()) || mc.player.getOffhandItem().is((Item)ModItems.CREATE_TEMPLATE.get())) {
-               CreateTemplateWheelScreen.tryOpen(mc.player.getMainHandItem());
+            ItemStack mainHand = mc.player.getMainHandItem();
+            ItemStack offhand = mc.player.getOffhandItem();
+            if (mainHand.is((Item)ModItems.CREATE_TEMPLATE.get())) {
+               CreateTemplateWheel.press(InteractionHand.MAIN_HAND);
+               altWheelOpened = true;
+            } else if (offhand.is((Item)ModItems.CREATE_TEMPLATE.get())) {
+               CreateTemplateWheel.press(InteractionHand.OFF_HAND);
                altWheelOpened = true;
             }
-         } else if (!altDown) {
+         } else if (!altDown && altWheelOpened) {
+            CreateTemplateWheel.release();
             altWheelOpened = false;
          }
       }
@@ -47,12 +53,9 @@ public class KeyBindingHandler {
 
    @SubscribeEvent
    public static void onKeyInput(Key event) {
-      if ((event.getKey() == 342 || event.getKey() == 346) && event.getAction() == 0) {
+      if ((event.getKey() == 342 || event.getKey() == 346) && event.getAction() == 0 && altWheelOpened) {
+         CreateTemplateWheel.release();
          altWheelOpened = false;
-         Minecraft mc = Minecraft.getInstance();
-         if (mc.screen instanceof CreateTemplateWheelScreen screen) {
-            screen.wheel.close();
-         }
       }
    }
 

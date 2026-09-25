@@ -5,7 +5,6 @@ import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.PouchCapacityComponent;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -14,8 +13,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import com.mojang.logging.LogUtils;
-import org.slf4j.Logger;
 
 /**
  * 护腿 + 口袋 → 带口袋的护腿（保留原有所有组件）。
@@ -38,7 +35,6 @@ import org.slf4j.Logger;
  * 遗留一个对应口袋物品，即"口袋与护腿分离"。工作台和 2×2 合成格均生效。
  */
 public class PouchLeggingsRecipe implements CraftingRecipe {
-   private static final Logger LOGGER = LogUtils.getLogger();
    private final CraftingBookCategory category;
 
    public PouchLeggingsRecipe(CraftingBookCategory category) {
@@ -90,10 +86,6 @@ public class PouchLeggingsRecipe implements CraftingRecipe {
          if (!leggings.isEmpty() && hasPouchComponent(leggings)) {
             ItemStack stripped = leggings.copy();
             stripped.remove((net.minecraft.core.component.DataComponentType) ModComponents.POUCH_CAPACITY.get());
-            LOGGER.info(
-               "[DingDongJi][口袋] 拆除分支：{} → 移除口袋组件（口袋经合成返还遗留）",
-               BuiltInRegistries.ITEM.getKey(leggings.getItem())
-            );
             return stripped;
          }
          return ItemStack.EMPTY;
@@ -106,12 +98,6 @@ public class PouchLeggingsRecipe implements CraftingRecipe {
       result.set(
          (net.minecraft.core.component.DataComponentType) ModComponents.POUCH_CAPACITY.get(),
          new PouchCapacityComponent(capacity)
-      );
-      LOGGER.info(
-         "[DingDongJi][口袋] 合成分支：护腿={} + {} → 口袋组件容量={}",
-         BuiltInRegistries.ITEM.getKey(leggings.getItem()),
-         BuiltInRegistries.ITEM.getKey(pouch.getItem()),
-         capacity
       );
       return result;
    }

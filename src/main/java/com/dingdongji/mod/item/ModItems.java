@@ -121,9 +121,7 @@ public class ModItems {
       () -> new ArmorItem(
             ModArmorMaterials.holder(ModArmorMaterials.ROYAL_STEEL),
             Type.CHESTPLATE,
-            new Properties()
-               .durability(vanillaArmor(Type.CHESTPLATE, 33))
-               .component((DataComponentType)ModComponents.ROYAL_STEEL_AFFINITY.get(), RoyalSteelAffinityComponent.INSTANCE)
+            royalSteelChestProperties()
          )
    );
    public static final DeferredItem<ArmorItem> ROYAL_STEEL_LEGGINGS = ITEMS.register(
@@ -156,9 +154,7 @@ public class ModItems {
       () -> new ArmorItem(
             ModArmorMaterials.holder(ModArmorMaterials.FROST_METAL),
             Type.CHESTPLATE,
-            new Properties()
-               .durability(vanillaArmor(Type.CHESTPLATE, 37))
-               .component((DataComponentType)ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT)
+            frostMetalChestProperties()
          )
    );
    public static final DeferredItem<ArmorItem> FROST_METAL_LEGGINGS = ITEMS.register(
@@ -198,10 +194,7 @@ public class ModItems {
       () -> new ArmorItem(
             ModArmorMaterials.holder(ModArmorMaterials.EMBER_METAL),
             Type.CHESTPLATE,
-            new Properties()
-               .durability(vanillaArmor(Type.CHESTPLATE, 37))
-               .fireResistant()
-               .component((DataComponentType)ModComponents.BARRIER_I.get(), BarrierIComponent.INSTANCE)
+            emberMetalChestProperties()
          )
    );
    public static final DeferredItem<ArmorItem> EMBER_METAL_LEGGINGS = ITEMS.register(
@@ -242,7 +235,7 @@ public class ModItems {
       () -> new ArmorItem(
             ModArmorMaterials.holder(ModArmorMaterials.TRANSCENDIUM),
             Type.CHESTPLATE,
-            unbreakableArmor().fireResistant().rarity(Rarity.EPIC).component((DataComponentType)ModComponents.BARRIER_II.get(), BarrierIIComponent.INSTANCE)
+            transcendiumChestProperties()
          )
    );
    public static final DeferredItem<ArmorItem> TRANSCENDIUM_LEGGINGS = ITEMS.register(
@@ -275,25 +268,6 @@ public class ModItems {
    public static final DeferredItem<ArmorItem> SPECTRAL_BOOTS = ITEMS.register(
       "spectral_boots", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.SPECTRAL), Type.BOOTS, spectralArmorProperties(Type.BOOTS))
    );
-
-   // 中子航空套：耐候套上位，功能暂为占位，发光屏幕走光带渲染层。
-   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_HELMET = ITEMS.register(
-      "neutron_spacesuit_helmet",
-      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.HELMET, neutronSpacesuitProperties(Type.HELMET))
-   );
-   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_CHESTPLATE = ITEMS.register(
-      "neutron_spacesuit_chestplate",
-      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.CHESTPLATE, neutronSpacesuitProperties(Type.CHESTPLATE))
-   );
-   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_LEGGINGS = ITEMS.register(
-      "neutron_spacesuit_leggings",
-      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.LEGGINGS, neutronSpacesuitProperties(Type.LEGGINGS))
-   );
-   public static final DeferredItem<ArmorItem> NEUTRON_SPACESUIT_BOOTS = ITEMS.register(
-      "neutron_spacesuit_boots",
-      () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.NEUTRON_SPACESUIT), Type.BOOTS, neutronSpacesuitProperties(Type.BOOTS))
-   );
-
    /** 小口袋：7 皮革合成，给护腿 +6 栏位。 */
    public static final DeferredItem<Item> SMALL_POUCH = ITEMS.register("small_pouch", () -> new PouchItem(new Properties()));
    /** 深口袋：小口袋中心放小口袋合成，给护腿 +12 栏位。 */
@@ -321,12 +295,31 @@ public class ModItems {
          .component(DataComponents.UNBREAKABLE, new Unbreakable(true));
    }
 
-   /** 中子航空套：下界合金档耐久，防火，史诗稀有度。功能后续补齐。 */
-   private static Properties neutronSpacesuitProperties(Type type) {
+   // --- 胸甲 Properties 工厂：统一组件/耐久配置 ---
+   private static Properties royalSteelChestProperties() {
       return new Properties()
-         .durability(vanillaArmor(type, 37))
+         .durability(vanillaArmor(Type.CHESTPLATE, 33))
+         .component((DataComponentType)ModComponents.ROYAL_STEEL_AFFINITY.get(), RoyalSteelAffinityComponent.INSTANCE);
+   }
+
+   private static Properties frostMetalChestProperties() {
+      return new Properties()
+         .durability(vanillaArmor(Type.CHESTPLATE, 37))
+         .component((DataComponentType)ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT);
+   }
+
+   private static Properties emberMetalChestProperties() {
+      return new Properties()
+         .durability(vanillaArmor(Type.CHESTPLATE, 37))
          .fireResistant()
-         .rarity(Rarity.EPIC);
+         .component((DataComponentType)ModComponents.BARRIER_I.get(), BarrierIComponent.INSTANCE);
+   }
+
+   private static Properties transcendiumChestProperties() {
+      return unbreakableArmor()
+         .fireResistant()
+         .rarity(Rarity.EPIC)
+         .component((DataComponentType)ModComponents.BARRIER_II.get(), BarrierIIComponent.INSTANCE);
    }
 
    private static ItemAttributeModifiers createJiSwordAttributes() {

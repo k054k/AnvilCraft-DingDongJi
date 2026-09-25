@@ -1,8 +1,9 @@
 package com.dingdongji.mod.event;
 
+import com.dingdongji.mod.init.ModRecipes;
 import com.dingdongji.mod.item.ModItems;
-import java.util.HashMap;
-import java.util.Map;
+import com.dingdongji.mod.recipe.ItemPortalConversionRecipe;
+import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -13,67 +14,24 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 /**
- * 监听物品掉落物进入末地维度（玩家把套装部位丢进末地门，传送完成后
- * 在末地生成 ItemEntity 时触发）。按概率转换为对应的幻灵装备，未中
- * 部分转换为末地尘。
- *
- * 各套装概率与 AnvilCraft 数据包 portal_conversion 中对应材料砧变幻灵
- * 砧的概率一致：铁套 3%（铁砧）、皇家钢套 50%（皇家砧）、余烬金属套
- * 100%（余烬砧）、浮霜金属套 100%（霜寒砧）、超限合金套 100%（超限砧）。
- * 不使用该数据包配方本身，因其只支持 FallingBlock 方块转换、不支持物品。
+ * 监听物品 ItemEntity 进入末地维度（玩家把套装部位丢进末地门，传送完成后
+ * 在末地生成 ItemEntity 时触发）。按几率通过 {@link ItemPortalConversionRecipe}
+ * 转换为对应的幻灵装备；未命中部分转为 AnvilCraft 的 end_dust 或原版末地石。
+ * <p>
+ * 配方驱动：不再硬编码 CONVERSION_MAP，所有转换规则由数据包中
+ * {@code dingdongji:item_portal_conversion} 类型 JSON 配方定义，随资源包自动生效。
  */
 public final class ModEndGatewayHandler {
-   private static final float RATE_IRON = 0.03F;
-   private static final float RATE_ROYAL = 0.5F;
-   private static final float RATE_FULL = 1.0F;
    private static final ResourceKey<Level> THE_END =
       ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("minecraft:the_end"));
-   private static final Map<Item, Conversion> CONVERSION_MAP = new HashMap<>();
    private static Item cachedDustItem;
 
    private ModEndGatewayHandler() {
-   }
-
-   private record Conversion(Item target, float rate) {
-   }
-
-   private static void initConversionMap() {
-      if (!CONVERSION_MAP.isEmpty()) {
-         return;
-      }
-      // 铁套 → 幻灵套
-      register(Items.IRON_HELMET, (Item)ModItems.SPECTRAL_HELMET.get(), RATE_IRON);
-      register(Items.IRON_CHESTPLATE, (Item)ModItems.SPECTRAL_CHESTPLATE.get(), RATE_IRON);
-      register(Items.IRON_LEGGINGS, (Item)ModItems.SPECTRAL_LEGGINGS.get(), RATE_IRON);
-      register(Items.IRON_BOOTS, (Item)ModItems.SPECTRAL_BOOTS.get(), RATE_IRON);
-      // 皇家钢套 → 幻灵套，50%
-      register((Item)ModItems.ROYAL_STEEL_HELMET.get(), (Item)ModItems.SPECTRAL_HELMET.get(), RATE_ROYAL);
-      register((Item)ModItems.ROYAL_STEEL_CHESTPLATE.get(), (Item)ModItems.SPECTRAL_CHESTPLATE.get(), RATE_ROYAL);
-      register((Item)ModItems.ROYAL_STEEL_LEGGINGS.get(), (Item)ModItems.SPECTRAL_LEGGINGS.get(), RATE_ROYAL);
-      register((Item)ModItems.ROYAL_STEEL_BOOTS.get(), (Item)ModItems.SPECTRAL_BOOTS.get(), RATE_ROYAL);
-      // 余烬金属套 → 幻灵套，100%
-      register((Item)ModItems.EMBER_METAL_HELMET.get(), (Item)ModItems.SPECTRAL_HELMET.get(), RATE_FULL);
-      register((Item)ModItems.EMBER_METAL_CHESTPLATE.get(), (Item)ModItems.SPECTRAL_CHESTPLATE.get(), RATE_FULL);
-      register((Item)ModItems.EMBER_METAL_LEGGINGS.get(), (Item)ModItems.SPECTRAL_LEGGINGS.get(), RATE_FULL);
-      register((Item)ModItems.EMBER_METAL_BOOTS.get(), (Item)ModItems.SPECTRAL_BOOTS.get(), RATE_FULL);
-      // 浮霜金属套 → 幻灵套，100%
-      register((Item)ModItems.FROST_METAL_HELMET.get(), (Item)ModItems.SPECTRAL_HELMET.get(), RATE_FULL);
-      register((Item)ModItems.FROST_METAL_CHESTPLATE.get(), (Item)ModItems.SPECTRAL_CHESTPLATE.get(), RATE_FULL);
-      register((Item)ModItems.FROST_METAL_LEGGINGS.get(), (Item)ModItems.SPECTRAL_LEGGINGS.get(), RATE_FULL);
-      register((Item)ModItems.FROST_METAL_BOOTS.get(), (Item)ModItems.SPECTRAL_BOOTS.get(), RATE_FULL);
-      // 超限合金套 → 幻灵套，100%
-      register((Item)ModItems.TRANSCENDIUM_HELMET.get(), (Item)ModItems.SPECTRAL_HELMET.get(), RATE_FULL);
-      register((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get(), (Item)ModItems.SPECTRAL_CHESTPLATE.get(), RATE_FULL);
-      register((Item)ModItems.TRANSCENDIUM_LEGGINGS.get(), (Item)ModItems.SPECTRAL_LEGGINGS.get(), RATE_FULL);
-      register((Item)ModItems.TRANSCENDIUM_BOOTS.get(), (Item)ModItems.SPECTRAL_BOOTS.get(), RATE_FULL);
-   }
-
-   private static void register(Item source, Item target, float rate) {
-      CONVERSION_MAP.put(source, new Conversion(target, rate));
    }
 
    /** 末地尘：优先 AnvilCraft 的 end_dust，未安装时退化为原版末地石。 */
@@ -85,6 +43,18 @@ public final class ModEndGatewayHandler {
       return cachedDustItem;
    }
 
+   /** 在服务端 ServerLevel（末地）的配方管理器中，为给定输入找第一个匹配的
+    *  ItemPortalConversionRecipe。空返回 = 没有适用配方。 */
+   private static ItemPortalConversionRecipe findRecipe(ServerLevel level, ItemStack input) {
+      RecipeType<ItemPortalConversionRecipe> type =
+         (RecipeType<ItemPortalConversionRecipe>)ModRecipes.ITEM_PORTAL_CONVERSION_TYPE.get();
+      for (var holder : level.getRecipeManager().getAllRecipesFor(type)) {
+         ItemPortalConversionRecipe r = holder.value();
+         if (r.matchesItem(input)) return r;
+      }
+      return null;
+   }
+
    @SubscribeEvent
    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
       if (!(event.getEntity() instanceof ItemEntity itemEntity)) {
@@ -93,26 +63,33 @@ public final class ModEndGatewayHandler {
       if (!(itemEntity.level() instanceof ServerLevel level) || !level.dimension().equals(THE_END)) {
          return;
       }
-      initConversionMap();
+
       ItemStack stack = itemEntity.getItem();
-      Conversion conv = CONVERSION_MAP.get(stack.getItem());
-      if (conv == null) {
+      ItemPortalConversionRecipe recipe = findRecipe(level, stack);
+      if (recipe == null) {
+         return;
+      }
+      // 只有"末地门" portalId（或配方 portalId = "" 通配）才在此处触发；
+      // 未来若要支持 Nether End 或其他门，在配方 JSON 改 portal 字段即可。
+      if (!recipe.portalId().toString().equals("minecraft:end_portal")) {
          return;
       }
 
       int count = stack.getCount();
-      int spectralCount = 0;
+      int targetCount = 0;
+      var result = recipe.result();
       for (int i = 0; i < count; i++) {
-         if (level.getRandom().nextFloat() < conv.rate()) {
-            spectralCount++;
+         if (result.roll(level.getRandom().nextFloat())) {
+            targetCount++;
          }
       }
-      int dustCount = count - spectralCount;
+      int dustCount = count - targetCount;
 
-      // 原掉落物保留幻灵部分（若有），末地尘部分生成新掉落物；
-      // 全部未中则把原掉落物直接改为末地尘。
-      if (spectralCount > 0) {
-         itemEntity.setItem(new ItemStack(conv.target(), spectralCount));
+      if (targetCount > 0) {
+         // 配方 result.item 直接用作输出（已经是幻灵套或指定转换目标）
+         ItemStack target = result.item().copy();
+         target.setCount(targetCount);
+         itemEntity.setItem(target);
          if (dustCount > 0) {
             ItemEntity dustEntity = new ItemEntity(
                level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(),

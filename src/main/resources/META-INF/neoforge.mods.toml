@@ -4,10 +4,10 @@ license = "LGPL-3.0"
 
 [[mods]]
 modId = "dingdongji"
-version = "0.0.9-test"
+version = "0.0.9"
 displayName = "AnvilCraft-DingDongJi"
 logoFile = "icon.png"
-credits = "WPS灵犀, 苏打水, 陈小丸"
+credits = "灵犀, 苏打水, 陈小丸"
 authors = "_054k"
 description = '''AnvilCraft-DingDongJi - 铁砧工艺扩展模组
 包含叽砧、叽装备、黑洞剑、白洞剑、创造模板及四套定制盔甲（皇家钢、余烬金属、浮霜金属、超限合金）。

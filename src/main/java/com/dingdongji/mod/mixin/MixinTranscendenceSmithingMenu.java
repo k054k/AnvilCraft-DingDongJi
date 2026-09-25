@@ -3,6 +3,7 @@ package com.dingdongji.mod.mixin;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.CreateTemplateMode;
+import com.dingdongji.mod.util.CreateTemplatePinOrder;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -38,13 +39,13 @@ public abstract class MixinTranscendenceSmithingMenu {
       method = {"refreshTemplateCatalog"},
       at = {@At("TAIL")}
    )
-   private void dingdongji$prioritizeCreateTemplate(CallbackInfo ci) {
+   private void dingdongji$expandCreateTemplate(CallbackInfo ci) {
       try {
          Class<?> clazz = Class.forName("dev.dubhe.anvilcraft.inventory.TranscendenceSmithingMenu");
          Field field = clazz.getDeclaredField("templates");
          field.setAccessible(true);
          List<ItemStack> templates = (List<ItemStack>)field.get(this);
-         if (templates == null || templates.size() <= 1) {
+         if (templates == null || templates.isEmpty()) {
             return;
          }
 
@@ -80,21 +81,34 @@ public abstract class MixinTranscendenceSmithingMenu {
          ItemStack zeta = base.copy();
          zeta.set((DataComponentType)ModComponents.CREATE_TEMPLATE_MODE.get(), CreateTemplateMode.ZETA);
          expansion.add(zeta);
-         List<ItemStack> reordered = new ArrayList<>(templates.size() + expansion.size());
-         reordered.addAll(expansion);
+
+         // 服务端目录保持自然序：把基项原位替换为 6 个变体，绝不置顶。
+         // 是否置顶是纯客户端表现（CreateTemplatePinOrder 读本地配置）。
+         // 原方法产出的列表来自 Stream.toList()（不可变），故重建后整体写回。
+         List<ItemStack> natural = new ArrayList<>(templates.size() + expansion.size() - 1);
 
          for (int ix = 0; ix < templates.size(); ix++) {
             if (ix != createIdx) {
-               reordered.add(templates.get(ix));
+               natural.add(templates.get(ix));
             }
          }
 
-         field.set(this, reordered);
+         natural.addAll(createIdx, expansion);
+         field.set(this, natural);
          Field dirtyField = clazz.getDeclaredField("templateDataDirty");
          dirtyField.setAccessible(true);
          dirtyField.setBoolean(this, true);
       } catch (Exception var15) {
       }
+   }
+
+   @Inject(
+      method = {"handleTemplateSync"},
+      at = {@At("TAIL")},
+      remap = false
+   )
+   private void dingdongji$pinOrderAfterSync(List<ItemStack> templates, List<?> favorites, ItemStack selected, CallbackInfo ci) {
+      CreateTemplatePinOrder.onSynced(this);
    }
 
    @Inject(
