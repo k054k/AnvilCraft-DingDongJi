@@ -45,6 +45,7 @@ public abstract class MixinHumanoidArmorLayerRenderType {
    @Inject(
       method = "renderModel(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/model/Model;ILnet/minecraft/resources/ResourceLocation;)V",
       at = @At("HEAD"),
+      cancellable = true,
       require = 1
    )
    private void ddj$spectralRenderControlled(

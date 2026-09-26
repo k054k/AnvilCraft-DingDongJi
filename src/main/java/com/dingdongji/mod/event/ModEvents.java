@@ -1,6 +1,6 @@
 package com.dingdongji.mod.event;
 
-import com.dingdongji.mod.input.ModKeyBindings;
+import com.dingdongji.mod.client.ClientKeyNames;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.AccumulateData;
@@ -190,7 +190,7 @@ public class ModEvents {
       }
 
       if (stack.has((DataComponentType)ModComponents.COMFORTABLE.get())) {
-         String key = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         String key = ClientKeyNames.abilityKey();
          descLines.add(Component.literal(String.format("舒适：按 [%s] 键开关，行走时更加舒适便捷", key)).setStyle(ROYAL_STEEL_STYLE));
       }
 
@@ -207,17 +207,17 @@ public class ModEvents {
       }
 
       if (stack.has((DataComponentType)ModComponents.LAVA_WALKER.get())) {
-         String key = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         String key = ClientKeyNames.abilityKey();
          descLines.add(Component.translatable("tooltip.dingdongji.lava_walker", new Object[]{key}).setStyle(EMBER_METAL_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.GLOWING_VISION.get())) {
-         String glowingKey = ModKeyBindings.GLOWING_VISION_KEY.getTranslatedKeyMessage().getString();
+         String glowingKey = ClientKeyNames.glowingVisionKey();
          descLines.add(Component.translatable("tooltip.dingdongji.glowing_vision", new Object[]{glowingKey}).setStyle(TRANSCENDIUM_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.NEUTRON_BARRIER.get())) {
-         String neutronKey = ModKeyBindings.NEUTRON_BARRIER_KEY.getTranslatedKeyMessage().getString();
+         String neutronKey = ClientKeyNames.neutronBarrierKey();
          descLines.add(Component.literal(String.format("中子屏罩：按 [%s] 切换清除飞向自身的弹射物与排斥靠近自身敌对生物的开关", neutronKey)).setStyle(TRANSCENDIUM_STYLE));
       }
 
@@ -226,7 +226,7 @@ public class ModEvents {
       }
 
       if (stack.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
-         String key = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         String key = ClientKeyNames.abilityKey();
          descLines.add(Component.translatable("tooltip.dingdongji.stride_void_enhanced", new Object[]{key}).setStyle(TRANSCENDIUM_STYLE));
       }
 
@@ -270,12 +270,12 @@ public class ModEvents {
       }
 
       if (stack.has((DataComponentType)ModComponents.FROST_WALK.get())) {
-         String frostKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         String frostKey = ClientKeyNames.abilityKey();
          descLines.add(Component.translatable("tooltip.dingdongji.frost_walk", new Object[]{frostKey}).setStyle(FROST_ABILITY_STYLE));
       }
 
       if (stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
-         String phaseKey = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
+         String phaseKey = ClientKeyNames.abilityKey();
          descLines.add(Component.translatable("tooltip.dingdongji.spectral_phase", new Object[]{phaseKey}).setStyle(SPECTRAL_PHASE_STYLE));
       }
 

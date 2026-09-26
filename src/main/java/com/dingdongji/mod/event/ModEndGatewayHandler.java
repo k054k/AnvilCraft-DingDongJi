@@ -17,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 
 /**
  * 监听物品 ItemEntity 进入末地维度（玩家把套装部位丢进末地门，传送完成后
@@ -29,6 +30,8 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 public final class ModEndGatewayHandler {
    private static final ResourceKey<Level> THE_END =
       ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse("minecraft:the_end"));
+   /** 跨维度旅行时打的标记：只有从其他维度穿过末地传送门进入末地的物品才允许转换。 */
+   private static final String TAG_FROM_END_PORTAL = "dingdongji_from_end_portal";
    private static Item cachedDustItem;
 
    private ModEndGatewayHandler() {
@@ -64,6 +67,13 @@ public final class ModEndGatewayHandler {
          return;
       }
 
+      var persistentData = itemEntity.getPersistentData();
+      if (!persistentData.getBoolean(TAG_FROM_END_PORTAL)) {
+         return;
+      }
+      // 消费标记：防止物品长期滞留末地或存档重载后被重复转换
+      persistentData.remove(TAG_FROM_END_PORTAL);
+
       ItemStack stack = itemEntity.getItem();
       ItemPortalConversionRecipe recipe = findRecipe(level, stack);
       if (recipe == null) {
@@ -86,8 +96,9 @@ public final class ModEndGatewayHandler {
       int dustCount = count - targetCount;
 
       if (targetCount > 0) {
-         // 配方 result.item 直接用作输出（已经是幻灵套或指定转换目标）
+         // 以原物品栈组件为基础转换，保留附魔、耐久、命名等，避免玩家财产损失
          ItemStack target = result.item().copy();
+         target.applyComponents(stack.getComponents());
          target.setCount(targetCount);
          itemEntity.setItem(target);
          if (dustCount > 0) {

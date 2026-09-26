@@ -5,7 +5,7 @@ plugins {
     alias libs.plugins.modDevGradle
 }
 
-version = '0.0.9'
+version = '0.0.9-fix2'
 group = maven_group
 
 apply from: "$rootDir/gradle/scripts/moddevgradle.gradle"

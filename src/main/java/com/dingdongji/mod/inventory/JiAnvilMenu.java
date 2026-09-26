@@ -4,10 +4,10 @@ import com.dingdongji.mod.ModMenuTypes;
 import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup.RegistryLookup;
@@ -33,8 +33,8 @@ import net.neoforged.neoforge.common.CommonHooks;
 
 public class JiAnvilMenu extends AnvilMenu {
    private static final float DOUBLE_CHANCE = 0.1F;
-   private static final Map<String, Boolean> DOUBLE_RESULT_CACHE = new HashMap<>();
-   private static final Map<String, Boolean> CURSE_RESULT_CACHE = new HashMap<>();
+   private static final Map<String, Boolean> DOUBLE_RESULT_CACHE = new ConcurrentHashMap<>();
+   private static final Map<String, Boolean> CURSE_RESULT_CACHE = new ConcurrentHashMap<>();
    private Field costField;
    private Field itemNameField;
 
@@ -251,28 +251,6 @@ public class JiAnvilMenu extends AnvilMenu {
                      }
 
                      enchantmentsOnLeft.set(holder, resultLevel);
-                     String curseKey = curseCacheKey(this.player.getUUID(), inputLeft, inputRight);
-                     Boolean cachedCurse = CURSE_RESULT_CACHE.get(curseKey);
-                     if (cachedCurse == null) {
-                        cachedCurse = this.player.getRandom().nextFloat() < 0.2F;
-                        CURSE_RESULT_CACHE.put(curseKey, cachedCurse);
-                     }
-
-                     if (cachedCurse) {
-                        List<Holder<Enchantment>> curses = new ArrayList<>();
-                        RegistryLookup<Enchantment> enchRegistry = this.player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-
-                        for (Holder<Enchantment> possible : enchRegistry.listElements().toList()) {
-                           if (possible.is(EnchantmentTags.CURSE) && enchantmentsOnLeft.getLevel(possible) <= 0 && inputLeftCopy.supportsEnchantment(possible)) {
-                              curses.add(possible);
-                           }
-                        }
-
-                        if (!curses.isEmpty()) {
-                           Holder<Enchantment> curse = curses.get(this.player.getRandom().nextInt(curses.size()));
-                           enchantmentsOnLeft.set(curse, 1);
-                        }
-                     }
 
                      int anvilCost = enchantment.getAnvilCost();
                      if (hasStoredEnchantmentsOnInput2) {
@@ -284,6 +262,32 @@ public class JiAnvilMenu extends AnvilMenu {
                      totalCost += (int)Math.min(enchantCost, 2147483647L);
                      if (inputLeft.getCount() > 1) {
                         totalCost = 99999999;
+                     }
+                  }
+               }
+
+               // 本次合成只要实际转移了至少一个附魔，就只掷一次 20%，最多附加一个诅咒
+               if (flag2) {
+                  String curseKey = curseCacheKey(this.player.getUUID(), inputLeft, inputRight);
+                  Boolean cachedCurse = CURSE_RESULT_CACHE.get(curseKey);
+                  if (cachedCurse == null) {
+                     cachedCurse = this.player.getRandom().nextFloat() < 0.2F;
+                     CURSE_RESULT_CACHE.put(curseKey, cachedCurse);
+                  }
+
+                  if (cachedCurse) {
+                     List<Holder<Enchantment>> curses = new ArrayList<>();
+                     RegistryLookup<Enchantment> enchRegistry = this.player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+
+                     for (Holder<Enchantment> possible : enchRegistry.listElements().toList()) {
+                        if (possible.is(EnchantmentTags.CURSE) && enchantmentsOnLeft.getLevel(possible) <= 0 && inputLeftCopy.supportsEnchantment(possible)) {
+                           curses.add(possible);
+                        }
+                     }
+
+                     if (!curses.isEmpty()) {
+                        Holder<Enchantment> curse = curses.get(this.player.getRandom().nextInt(curses.size()));
+                        enchantmentsOnLeft.set(curse, 1);
                      }
                   }
                }

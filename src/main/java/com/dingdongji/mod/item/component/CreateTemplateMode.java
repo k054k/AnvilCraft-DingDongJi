@@ -2,6 +2,7 @@ package com.dingdongji.mod.item.component;
 
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
+import java.util.Set;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -19,6 +20,12 @@ public record CreateTemplateMode(String mode) {
    public static final CreateTemplateMode EPSILON = new CreateTemplateMode("epsilon");
    public static final CreateTemplateMode ZETA = new CreateTemplateMode("zeta");
    public static final CreateTemplateMode DEFAULT = ALPHA;
+   /** 服务端校验用：只有这六个模式允许被网络包写入，防止伪造包写入任意字符串。 */
+   public static final Set<String> VALID_MODES = Set.of("alpha", "beta", "gamma", "delta", "epsilon", "zeta");
+
+   public static boolean isValid(String mode) {
+      return mode != null && VALID_MODES.contains(mode);
+   }
 
    public CreateTemplateMode next() {
       String var1 = this.mode;

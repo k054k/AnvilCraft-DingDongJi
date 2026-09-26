@@ -32,14 +32,14 @@ public class ModClientConfig {
    }
 
    public static boolean glowBandEnabled() {
-      return GLOW_BAND.get();
+      return SPEC.isLoaded() && GLOW_BAND.get();
    }
 
    public static boolean createTemplatePinEnabled() {
-      return CREATE_TEMPLATE_PIN.get();
+      return SPEC.isLoaded() && CREATE_TEMPLATE_PIN.get();
    }
 
    public static boolean flightAfterimageEnabled() {
-      return FLIGHT_AFTERIMAGE.get();
+      return SPEC.isLoaded() && FLIGHT_AFTERIMAGE.get();
    }
 }
