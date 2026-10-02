@@ -1,0 +1,14 @@
+{
+    "input":  {
+                  "items":  "dingdongji:ji_boots"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "type":  "anvilcraft:empty"
+                                     },
+                        "result":  "minecraft:golden_boots"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

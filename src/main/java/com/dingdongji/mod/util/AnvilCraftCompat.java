@@ -4,11 +4,16 @@ import com.mojang.datafixers.util.Unit;
 import com.mojang.logging.LogUtils;
 import java.lang.reflect.Field;
 import javax.annotation.Nullable;
+import com.dingdongji.mod.item.ModComponents;
+import com.dingdongji.mod.item.component.PouchCapacityComponent;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
@@ -57,11 +62,6 @@ public class AnvilCraftCompat {
                LOGGER.warn("[DingDongJi] 无法反射获取 Providence.INSTANCE", var4);
             }
          }
-
-         LOGGER.info(
-            "[DingDongJi] AnvilCraftCompat 初始化: reforging={}, eternal={}, providence={}",
-            new Object[]{cachedReforging != null, cachedEternal != null, cachedProvidence != null}
-         );
       }
    }
 
@@ -88,5 +88,25 @@ public class AnvilCraftCompat {
          DataComponentType<Object> type = (DataComponentType<Object>)cachedProvidence;
          stack.set(type, providenceInstance);
       }
+   }
+
+   /**
+    * 玩家口袋栏容量的唯一计算点（双端共用）。
+    * <p>
+    * 铁砧本体容量：耐候航天护腿 12、铁砧口袋护腿 6、其他 0；
+    * 再与护腿上 DDJ {@link PouchCapacityComponent} 的容量取 max。
+    * 结果：普通护腿+小口袋=6，+深口袋=12；耐候航天+深口袋=24。
+    */
+   public static int getPocketCapacity(Player player) {
+      ItemStack leggings = player.getItemBySlot(EquipmentSlot.LEGS);
+      String itemId = BuiltInRegistries.ITEM.getKey(leggings.getItem()).toString();
+      int base = switch (itemId) {
+         case "anvilcraft:weatherproof_spacesuit_leggings" -> 12;
+         case "anvilcraft:pockets_leggings" -> 6;
+         default -> 0;
+      };
+      PouchCapacityComponent comp = leggings.get(ModComponents.POUCH_CAPACITY.get());
+      int pouch = comp != null ? comp.capacity() : 0;
+      return base + pouch;
    }
 }

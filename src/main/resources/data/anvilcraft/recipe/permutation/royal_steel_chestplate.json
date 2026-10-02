@@ -1,0 +1,26 @@
+﻿{
+  "type": "anvilcraft:permutation",
+  "input": {
+    "items": "dingdongji:royal_steel_chestplate"
+  },
+  "options": [
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:diamond_chestplate"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:iron_chestplate"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:golden_chestplate"
+    }
+  ]
+}

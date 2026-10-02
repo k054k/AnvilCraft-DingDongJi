@@ -1,0 +1,26 @@
+﻿{
+  "type": "anvilcraft:permutation",
+  "input": {
+    "items": "dingdongji:royal_steel_helmet"
+  },
+  "options": [
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:diamond_helmet"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:iron_helmet"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:golden_helmet"
+    }
+  ]
+}

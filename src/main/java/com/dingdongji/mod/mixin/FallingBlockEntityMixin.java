@@ -18,8 +18,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin({FallingBlockEntity.class})
 public abstract class FallingBlockEntityMixin {
-   @Shadow
-   public boolean cancelDrop;
    private boolean dingdongji$isJiAnvil = false;
 
    @Shadow
@@ -34,15 +32,17 @@ public abstract class FallingBlockEntityMixin {
       this.dingdongji$isJiAnvil = bs != null && bs.is((Block)ModBlocks.JI_ANVIL.get());
    }
 
+   // 1.21.1 落地放置实际调用的是 Level#setBlock(BlockPos, BlockState, int)（原版 flags=3），
+   // 鸡安铁砧改用 flags=18（同步客户端但不触发邻居更新）
    @Redirect(
       method = {"tick"},
       at = @At(
          value = "INVOKE",
-         target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"
+         target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"
       )
    )
-   private boolean silenceAnvilPlaceSound(Level level, BlockPos pos, BlockState state) {
-      return this.dingdongji$isJiAnvil ? level.setBlock(pos, state, 18) : level.setBlockAndUpdate(pos, state);
+   private boolean silenceAnvilPlaceSound(Level level, BlockPos pos, BlockState state, int flags) {
+      return level.setBlock(pos, state, this.dingdongji$isJiAnvil ? 18 : flags);
    }
 
    @Inject(
@@ -58,21 +58,9 @@ public abstract class FallingBlockEntityMixin {
          if (self.level() instanceof ServerLevel serverLevel) {
             serverLevel.playSound(null, self.blockPosition(), SoundEvents.CHICKEN_AMBIENT, SoundSource.BLOCKS, 1.0F, 1.0F);
          }
-
-         this.cancelDrop = true;
       }
    }
 
-   @Redirect(
-      method = {"tick"},
-      at = @At(
-         value = "INVOKE",
-         target = "Lnet/minecraft/world/level/Level;levelEvent(ILnet/minecraft/core/BlockPos;I)V"
-      )
-   )
-   private void silenceAnvilLandEvent(Level level, int eventId, BlockPos pos, int data) {
-      if (!this.dingdongji$isJiAnvil) {
-         level.levelEvent(eventId, pos, data);
-      }
-   }
+   // 注：鸡安铁砧的落地哐当声无需额外屏蔽——JiAnvilBlock#onLand 为空实现，
+   // AnvilBlock 内的 levelEvent(1031) 本来就不会执行。
 }

@@ -1,0 +1,13 @@
+﻿{
+    "inputs":  [
+                   "dingdongji:spectral_helmet",
+                   "dingdongji:spectral_chestplate",
+                   "dingdongji:spectral_leggings",
+                   "dingdongji:spectral_boots"
+               ],
+    "material":  {
+                     "cost":  2,
+                     "type":  "anvilcraft:repair_material"
+                 },
+    "type":  "anvilcraft:deformation"
+}

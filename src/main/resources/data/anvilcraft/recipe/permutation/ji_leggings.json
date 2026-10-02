@@ -1,0 +1,14 @@
+{
+    "input":  {
+                  "items":  "dingdongji:ji_leggings"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "type":  "anvilcraft:empty"
+                                     },
+                        "result":  "minecraft:golden_leggings"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

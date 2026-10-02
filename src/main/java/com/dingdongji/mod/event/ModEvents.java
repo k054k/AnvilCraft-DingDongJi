@@ -1,6 +1,6 @@
 package com.dingdongji.mod.event;
 
-import com.dingdongji.mod.input.ModKeyBindings;
+import com.dingdongji.mod.client.ClientKeyNames;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.AccumulateData;
@@ -8,6 +8,7 @@ import com.dingdongji.mod.item.component.DevourData;
 import com.dingdongji.mod.item.component.MeaninglessData;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
@@ -47,6 +48,8 @@ public class ModEvents {
    private static final Style GRAY_STYLE = Style.EMPTY.withColor(11184810).withItalic(false);
    private static final Style CREATE_TEMPLATE_STYLE = Style.EMPTY.withColor(11141375).withItalic(false);
    private static final Style PARANOID_STYLE = Style.EMPTY.withColor(11141120).withItalic(false);
+   private static final Style SPECTRAL_SET_STYLE = Style.EMPTY.withColor(ChatFormatting.AQUA.getColor()).withItalic(false);
+   private static final Style SPECTRAL_PHASE_STYLE = Style.EMPTY.withColor(0x7187F5).withItalic(false);
 
    @SubscribeEvent
    public static void onLivingDeath(LivingDeathEvent event) {
@@ -145,42 +148,50 @@ public class ModEvents {
       ItemStack stack = event.getItemStack();
       Player player = event.getEntity();
       ArrayList<Component> descLines = new ArrayList<>();
+      if (stack.is((Item)ModItems.SMALL_POUCH.get())) {
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch", 6).setStyle(GRAY_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch.detach").setStyle(GRAY_STYLE));
+      } else if (stack.is((Item)ModItems.BIG_POUCH.get())) {
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch", 12).setStyle(GRAY_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.pouch.detach").setStyle(GRAY_STYLE));
+      }
+
       if (stack.has((DataComponentType)ModComponents.DEVOUR.get())) {
          DevourData data = (DevourData)stack.get((DataComponentType)ModComponents.DEVOUR.get());
          int kills = data.kills();
          if (kills < 0) {
-            descLines.add(Component.literal("吞噬：击杀生物提升武器伤害").setStyle(DEVOUR_STYLE));
-            descLines.add(Component.literal("击杀: ∞ | 额外伤害: +100000.0").setStyle(GRAY_STYLE));
+            descLines.add(Component.translatable("tooltip.dingdongji.devour.desc").setStyle(DEVOUR_STYLE));
+            descLines.add(Component.translatable("tooltip.dingdongji.devour.detail", "∞", "100000.0").setStyle(GRAY_STYLE));
          } else {
             float bonus = kills > 0 ? (float)Math.sqrt((double)kills) * 2.0F : 0.0F;
-            descLines.add(Component.literal("吞噬：击杀生物提升武器伤害，加伤公式 f(k)=2√k").setStyle(DEVOUR_STYLE));
-            descLines.add(Component.literal(String.format("击杀: %d | 额外伤害: +%.1f", kills, bonus)).setStyle(GRAY_STYLE));
+            descLines.add(Component.translatable("tooltip.dingdongji.devour", "f(k)=2√k").setStyle(DEVOUR_STYLE));
+            descLines.add(Component.translatable("tooltip.dingdongji.devour.detail", kills, String.format("%.1f", bonus)).setStyle(GRAY_STYLE));
          }
       }
 
       if (stack.has((DataComponentType)ModComponents.ACCUMULATE.get())) {
          AccumulateData data = (AccumulateData)stack.get((DataComponentType)ModComponents.ACCUMULATE.get());
          float bonus = (float)data.ticks() * 0.01F;
-         descLines.add(Component.literal("迸发：在背包中持续积蓄能量，每秒积蓄0.2点伤害，攻击时加成减半").setStyle(ACCUMULATE_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.accumulate").setStyle(ACCUMULATE_STYLE));
          int seconds = data.ticks() / 20;
          int hours = seconds / 3600;
          int mins = seconds % 3600 / 60;
          int secs = seconds % 60;
          String timeStr = hours > 0 ? String.format("%d:%02d:%02d", hours, mins, secs) : String.format("%d:%02d", mins, secs);
-         descLines.add(Component.literal(String.format("积蓄: %s | 额外伤害: +%.1f", timeStr, bonus)).setStyle(GRAY_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.accumulate.detail", timeStr, String.format("%.1f", bonus)).setStyle(GRAY_STYLE));
       }
 
       if (isAnyJiArmor(stack)) {
-         descLines.add(Component.literal("穿着全套后提升玩家挖掘速度和方块交互距离").setStyle(JI_ARMOR_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.ji_set").setStyle(SPECTRAL_SET_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.ROYAL_STEEL_AFFINITY.get())) {
-         descLines.add(Component.literal("皇家亲和：持续恢复穿戴者的生命").setStyle(ROYAL_STEEL_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.royal_steel_affinity").setStyle(ROYAL_STEEL_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.COMFORTABLE.get())) {
-         String key = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.literal(String.format("舒适：按 [%s] 键开关，行走时更加舒适便捷", key)).setStyle(ROYAL_STEEL_STYLE));
+         String key = ClientKeyNames.abilityKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.comfortable", new Object[]{key, ClientKeyNames.switchToolModeKey()}).setStyle(ROYAL_STEEL_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.HEAT_INSULATION.get())) {
@@ -188,26 +199,26 @@ public class ModEvents {
       }
 
       if (stack.has((DataComponentType)ModComponents.BARRIER_I.get())) {
-         descLines.add(Component.literal("壁垒I：对大部分伤害明显减伤").setStyle(EMBER_METAL_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.barrier_i").setStyle(EMBER_METAL_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.EMBER_REGEN.get())) {
-         descLines.add(Component.literal("浴火重生：持续恢复处于熔岩或火焰中佩戴者的生命，处于灵魂火时恢复效果翻倍").setStyle(EMBER_METAL_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.ember_regen").setStyle(EMBER_METAL_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.LAVA_WALKER.get())) {
-         String key = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.translatable("tooltip.dingdongji.lava_walker", new Object[]{key}).setStyle(EMBER_METAL_STYLE));
+         String key = ClientKeyNames.abilityKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.lava_walker", new Object[]{key, ClientKeyNames.switchToolModeKey()}).setStyle(EMBER_METAL_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.GLOWING_VISION.get())) {
-         String glowingKey = ModKeyBindings.GLOWING_VISION_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.translatable("tooltip.dingdongji.glowing_vision", new Object[]{glowingKey}).setStyle(TRANSCENDIUM_STYLE));
+         String glowingKey = ClientKeyNames.glowingVisionKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.glowing_vision", new Object[]{glowingKey, ClientKeyNames.switchToolModeKey()}).setStyle(TRANSCENDIUM_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.NEUTRON_BARRIER.get())) {
-         String neutronKey = ModKeyBindings.NEUTRON_BARRIER_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.literal(String.format("中子屏罩：按 [%s] 切换清除飞向自身的弹射物与排斥靠近自身敌对生物的开关", neutronKey)).setStyle(TRANSCENDIUM_STYLE));
+         String neutronKey = ClientKeyNames.neutronBarrierKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.neutron_barrier", neutronKey, ClientKeyNames.switchToolModeKey()).setStyle(TRANSCENDIUM_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.BARRIER_II.get())) {
@@ -215,19 +226,22 @@ public class ModEvents {
       }
 
       if (stack.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
-         String key = ModKeyBindings.ABILITY_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.translatable("tooltip.dingdongji.stride_void_enhanced", new Object[]{key}).setStyle(TRANSCENDIUM_STYLE));
+         String key = ClientKeyNames.abilityKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.stride_void_enhanced", new Object[]{key, ClientKeyNames.switchToolModeKey()}).setStyle(TRANSCENDIUM_STYLE));
       }
 
       if (stack.is((Item)ModItems.TRANSCENDIUM_HELMET.get())
          || stack.is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get())
          || stack.is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())
          || stack.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
-         descLines.add(Component.literal("偏执：根据已有魔咒的等级提升护甲值和盔甲韧性").setStyle(PARANOID_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.paranoid").setStyle(PARANOID_STYLE));
+         String phaseKey = ClientKeyNames.phaseShiftKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.transcendium_set", new Object[]{phaseKey}).setStyle(SPECTRAL_SET_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.MEANINGLESS.get())) {
-         descLines.add(Component.literal("无义：禁用所有魔咒并将其转换为护甲值和盔甲韧性").setStyle(FROST_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.meaningless").setStyle(FROST_STYLE));
+         descLines.add(Component.translatable("tooltip.dingdongji.meaningless.conversion").setStyle(FROST_STYLE));
          MeaninglessData mData = (MeaninglessData)stack.get((DataComponentType)ModComponents.MEANINGLESS_DATA.get());
          if (mData != null && !mData.convertedEnchantments().isEmpty()) {
             for (Holder<Enchantment> ench : mData.convertedEnchantments().keySet()) {
@@ -258,8 +272,20 @@ public class ModEvents {
       }
 
       if (stack.has((DataComponentType)ModComponents.FROST_WALK.get())) {
-         String frostKey = ModKeyBindings.FROST_SLIDE_KEY.getTranslatedKeyMessage().getString();
-         descLines.add(Component.translatable("tooltip.dingdongji.frost_walk", new Object[]{frostKey}).setStyle(FROST_ABILITY_STYLE));
+         String frostKey = ClientKeyNames.abilityKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.frost_walk", new Object[]{frostKey, ClientKeyNames.switchToolModeKey()}).setStyle(FROST_ABILITY_STYLE));
+      }
+
+      if (stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         String phaseKey = ClientKeyNames.abilityKey();
+         descLines.add(Component.translatable("tooltip.dingdongji.spectral_phase", new Object[]{phaseKey, ClientKeyNames.switchToolModeKey()}).setStyle(SPECTRAL_PHASE_STYLE));
+      }
+
+      if (stack.is((Item)ModItems.SPECTRAL_HELMET.get())
+         || stack.is((Item)ModItems.SPECTRAL_CHESTPLATE.get())
+         || stack.is((Item)ModItems.SPECTRAL_LEGGINGS.get())
+         || stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         descLines.add(Component.translatable("tooltip.dingdongji.spectral_set").setStyle(SPECTRAL_SET_STYLE));
       }
 
       if (!descLines.isEmpty()) {
@@ -280,7 +306,7 @@ public class ModEvents {
       }
 
       if (ModItems.isCreateTemplate(stack)) {
-         list.add(Component.literal("自身不消耗").setStyle(CREATE_TEMPLATE_STYLE));
+         list.add(Component.translatable("tooltip.dingdongji.create_template").setStyle(CREATE_TEMPLATE_STYLE));
       }
 
       if (stack.has((DataComponentType)ModComponents.BARRIER_II.get()) && player != null && stack.is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get())) {

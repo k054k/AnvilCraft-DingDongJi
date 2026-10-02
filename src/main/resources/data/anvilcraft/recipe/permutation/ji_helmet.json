@@ -1,0 +1,14 @@
+{
+    "input":  {
+                  "items":  "dingdongji:ji_helmet"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "type":  "anvilcraft:empty"
+                                     },
+                        "result":  "minecraft:golden_helmet"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

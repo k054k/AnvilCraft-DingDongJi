@@ -63,7 +63,14 @@ public class ModArmorMaterials {
             map.put(Type.BOOTS, 5);
          }), 15, SoundEvents.ARMOR_EQUIP_NETHERITE, () -> anvilCraftItem("transcendium_ingot"), List.of(new Layer(KryptonMod.modLoc("transcendium"))), 5.0F, 0.25F)
    );
-
+   public static final DeferredHolder<ArmorMaterial, ArmorMaterial> SPECTRAL = ARMOR_MATERIALS.register(
+      "spectral", () -> new ArmorMaterial((Map)Util.make(new EnumMap(Type.class), map -> {
+            map.put(Type.HELMET, 0);
+            map.put(Type.CHESTPLATE, 0);
+            map.put(Type.LEGGINGS, 0);
+            map.put(Type.BOOTS, 0);
+         }), 15, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.of(new ItemLike[]{Items.IRON_INGOT}), List.of(new Layer(KryptonMod.modLoc("spectral"))), 0.0F, 0.0F)
+   );
    public static Holder<ArmorMaterial> holder(DeferredHolder<ArmorMaterial, ArmorMaterial> deferred) {
       return BuiltInRegistries.ARMOR_MATERIAL.getHolderOrThrow(deferred.getKey());
    }

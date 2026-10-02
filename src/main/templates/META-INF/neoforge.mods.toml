@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+logoFile = "icon.png"
+credits = "灵犀, 苏打水, 陈小丸"
+authors = "${mod_authors}"
+description = '''AnvilCraft-DingDongJi - 铁砧工艺扩展模组
+包含叽砧、叽装备、黑洞剑、白洞剑、创造模板及四套定制盔甲（皇家钢、余烬金属、浮霜金属、超限合金）。
+16+10+32+16+叽块=？
+Requires AnvilCraft as dependency.
+'''
+
+[[dependencies.${mod_id}]]
+    modId = "anvilcraft"
+    mandatory = true
+    versionRange = "[1.6,1.7)"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[mixins]]
+config = "dingdongji.mixins.json"
+
