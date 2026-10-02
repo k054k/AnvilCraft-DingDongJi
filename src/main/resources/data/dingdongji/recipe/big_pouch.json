@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "L L",
+    "LSL",
+    "LLL"
+  ],
+  "key": {
+    "L": {"item": "minecraft:leather"},
+    "S": {"item": "dingdongji:small_pouch"}
+  },
+  "result": {"id": "dingdongji:big_pouch"}
+}

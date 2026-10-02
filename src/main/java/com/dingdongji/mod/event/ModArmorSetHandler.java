@@ -10,7 +10,6 @@ import com.dingdongji.mod.mixin.EntityAirDataAccessor;
 import com.dingdongji.mod.network.AbilityStateSyncPacket;
 import com.dingdongji.mod.network.IonocraftBootsFlyingPacket;
 import com.dingdongji.mod.util.AnvilCraftCompat;
-import com.mojang.logging.LogUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +32,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
@@ -64,6 +64,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import com.dingdongji.mod.mixin.LivingEntityJumpingAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
@@ -74,16 +77,16 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEven
 import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent.Pre;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.slf4j.Logger;
 
 public class ModArmorSetHandler {
-   private static final Logger LOGGER = LogUtils.getLogger();
    private static final int EFFECT_DURATION = 6000;
    private static final Map<UUID, Boolean> LAVA_WALKER_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> FROST_SLIDE_ENABLED = new HashMap<>();
+   private static final Map<UUID, Boolean> SPECTRAL_PHASE_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> GLOWING_VISION_ENABLED = new HashMap<>();
    private static final Map<UUID, Boolean> COMFORTABLE_ENABLED = new HashMap<>();
    private static final Map<UUID, Integer> NEUTRON_BARRIER_ENABLED = new HashMap<>();
+   private static final Map<UUID, Boolean> TRANSCENDIUM_PHASE_ENABLED = new HashMap<>();
    private static final Map<UUID, Long> BOSS_PROXIMITY_START = new HashMap<>();
    private static final Map<UUID, Long> BOSS_REPEL_COOLDOWN = new HashMap<>();
    private static final long PROXIMITY_THRESHOLD = 60L;
@@ -141,10 +144,12 @@ public class ModArmorSetHandler {
       saveToggleStates(player);
       LAVA_WALKER_ENABLED.remove(uuid);
       FROST_SLIDE_ENABLED.remove(uuid);
+      SPECTRAL_PHASE_ENABLED.remove(uuid);
       FLUID_SWIM.remove(uuid);
       GLOWING_VISION_ENABLED.remove(uuid);
       COMFORTABLE_ENABLED.remove(uuid);
       NEUTRON_BARRIER_ENABLED.remove(uuid);
+      TRANSCENDIUM_PHASE_ENABLED.remove(uuid);
       HELMET_MODE.remove(uuid);
       IONOCRAFT_FLIGHT_MODE.remove(uuid);
       IONOCRAFT_GRANTED.remove(uuid);
@@ -163,6 +168,7 @@ public class ModArmorSetHandler {
       Player player = event.getEntity();
       handleSurfaceWalking(player);
       if (!player.level().isClientSide) {
+         handleSpectralPhase(player);
          handleJiSet(player);
          handleComfortable(player);
          handleRoyalSteelChestplate(player);
@@ -305,7 +311,7 @@ public class ModArmorSetHandler {
          boolean enabled = COMFORTABLE_ENABLED.getOrDefault(uuid, false);
          enabled = !enabled;
          COMFORTABLE_ENABLED.put(uuid, enabled);
-         player.displayClientMessage(actionMessage("舒适", enabled ? "开" : "关", ChatFormatting.GREEN), true);
+         player.displayClientMessage(actionMessage("舒适", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
          saveToggleStates(player);
       }
    }
@@ -372,13 +378,154 @@ public class ModArmorSetHandler {
       return player.level().isClientSide ? ClientAbilityState.isFrostSlide(player) : FROST_SLIDE_ENABLED.getOrDefault(player.getUUID(), false);
    }
 
+   public static boolean hasFullSpectralSet(Player player) {
+      boolean head = player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.SPECTRAL_HELMET.get());
+      boolean chest = player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.SPECTRAL_CHESTPLATE.get());
+      boolean legs = player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.SPECTRAL_LEGGINGS.get());
+      boolean feet = player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.SPECTRAL_BOOTS.get());
+      return head && chest && legs && feet;
+   }
+
+   /**
+    * 0 = no phase, 1 = horizontal free (full set passive), 2 = vertical also
+    * free (full set + boots toggle on). Called from the collide mixin on both
+    * sides every movement, so it must stay allocation-free.
+    */
+   public static int spectralPhaseMode(Player player) {
+      if (!hasFullSpectralSet(player)) {
+         return 0;
+      }
+
+      boolean vertical = player.level().isClientSide
+         ? ClientAbilityState.isPhaseVertical(player)
+         : SPECTRAL_PHASE_ENABLED.getOrDefault(player.getUUID(), false);
+      return vertical ? 2 : 1;
+   }
+
+   public static void togglePhaseVertical(ServerPlayer player) {
+      ItemStack boots = player.getItemBySlot(EquipmentSlot.FEET);
+      if (boots.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         UUID uuid = player.getUUID();
+         boolean enabled = !SPECTRAL_PHASE_ENABLED.getOrDefault(uuid, false);
+         if (enabled && !hasFullSpectralSet(player)) {
+            player.displayClientMessage(Component.literal("虚化需要穿戴全套幻灵盔甲").withStyle(ChatFormatting.RED), true);
+            return;
+         }
+
+         SPECTRAL_PHASE_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("虚化", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      }
+   }
+
+   private static void handleSpectralPhase(Player player) {
+      // 开关状态只由玩家按 toggle 键改变，脱掉装备不清除（与蹈火/凌霜等
+      // 靴子功能一致），退出/登录经 saveToggleStates/loadToggleStates 持久化。
+      // 未穿全套时 spectralPhaseMode 返回 0，功能暂停；穿回后自动恢复。
+      if (isVerticalPhaseActive(player)) {
+         // mode 2 且（身体在方块内，或触底按 shift 开始下潜，流体中同样适用）：
+         // 无重力 + 垂直按键控制（与客户端 SpectralPhaseClientHandler 同逻辑）
+         player.setNoGravity(true);
+         player.fallDistance = 0.0F;
+         boolean jumpDown = ((LivingEntityJumpingAccessor) player).ddj$isJumping();
+         applyVerticalPhase(player, jumpDown, player.isShiftKeyDown());
+      } else {
+         player.setNoGravity(false);
+      }
+   }
+
+   /**
+    * 虚化垂直穿透是否激活（服务端事件与 move Mixin 共用同一判定）：
+    *   mode 2（水/岩浆/模组流体中同样适用：触底下穿是主动行为，不与
+    *   mode 1 的"水中脚触底不陷入"冲突），且满足以下之一：
+    *     - 身体当前处于方块内部（垂直穿移中）；
+    *     - 玩家触底（脚下方块有碰撞形状）按住潜行键（开始下潜）。
+    * 不满足时 y 分量做原版碰撞（mode 1 / mode 2 未激活：地表正常跑跳、
+    * 流体中正常游泳、脚触底停在方块顶）。
+    */
+   public static boolean isVerticalPhaseActive(Player player) {
+      if (spectralPhaseMode(player) != 2) {
+         return false;
+      }
+      if (isBodyClippingBlock(player)) {
+         return true;
+      }
+      return player.isShiftKeyDown() && hasCollisionBelow(player);
+   }
+
+   /**
+    * 实体身体 AABB（收缩 1e-4 排除面/线相切）是否与任何方块碰撞形状实质
+    * 相交。基于 Level#getBlockCollisions，对固体方块、树叶、栅栏等所有有
+    * 碰撞形状的方块均有效。客户端/服务端通用。
+    */
+   public static boolean isBodyClippingBlock(net.minecraft.world.entity.Entity entity) {
+      AABB inner = entity.getBoundingBox().deflate(1.0E-4);
+      return entity.level().getBlockCollisions(entity, inner).iterator().hasNext();
+   }
+
+   /**
+    * mode 2 虚化且身体处于方块内部时的垂直移动结算（双端同逻辑）。
+    *   跳跃键：向上 0.2/帧，若本帧会越过身体内最高方块顶面，则直接吸附
+    *           到该顶面（脚底站在方块顶上）并停止；
+    *   潜行键：脚底（下方 0.05）有方块碰撞时向下 0.15/帧；
+    *   其余：悬停（dy=0）。
+    *
+    * 服务端在 PlayerTickEvent.Pre 调用（本帧 move 前生效）；客户端在
+    * ClientTickEvent.Post 调用（设置下一帧速度，setPos 吸附修正本帧）。
+    */
+   public static void applyVerticalPhase(Player player, boolean jumpDown, boolean sneakDown) {
+      AABB box = player.getBoundingBox();
+      double dy = 0.0;
+      if (jumpDown && sneakDown) {
+         // 跳跃+潜行同按：悬停（dy 保持 0），方便在方块内停留观察/放置方块
+      } else if (jumpDown) {
+         double highestTop = highestClippingBlockTop(player, box.deflate(1.0E-4));
+         if (highestTop != Double.NEGATIVE_INFINITY) {
+            if (player.getY() + 0.2 >= highestTop) {
+               player.setPos(player.getX(), highestTop, player.getZ());
+               dy = 0.0;
+            } else {
+               dy = 0.2;
+            }
+         }
+      } else if (sneakDown && hasCollisionBelow(player)) {
+         dy = -0.15;
+      }
+
+      Vec3 dm = player.getDeltaMovement();
+      player.setDeltaMovement(dm.x, dy, dm.z);
+   }
+
+   /** 身体 AABB 内所有碰撞形状中的最高顶面 Y。 */
+   private static double highestClippingBlockTop(Player player, AABB inner) {
+      double top = Double.NEGATIVE_INFINITY;
+      for (VoxelShape shape : player.level().getBlockCollisions(player, inner)) {
+         if (!shape.isEmpty()) {
+            top = Math.max(top, shape.max(Direction.Axis.Y));
+         }
+      }
+      return top;
+   }
+
+   /** 脚底下方 0.05 处的方块是否有碰撞形状。 */
+   private static boolean hasCollisionBelow(Player player) {
+      AABB probe = new AABB(
+         player.getX() - 0.1, player.getY() - 0.05, player.getZ() - 0.1,
+         player.getX() + 0.1, player.getY(), player.getZ() + 0.1
+      );
+      return player.level().getBlockCollisions(player, probe).iterator().hasNext();
+   }
+
    public static void syncAbilityState(ServerPlayer player) {
       PacketDistributor.sendToPlayer(
          player,
          new AbilityStateSyncPacket(
             LAVA_WALKER_ENABLED.getOrDefault(player.getUUID(), false),
             FROST_SLIDE_ENABLED.getOrDefault(player.getUUID(), false),
-            HELMET_MODE.getOrDefault(player.getUUID(), 5)
+            HELMET_MODE.getOrDefault(player.getUUID(), 5),
+            SPECTRAL_PHASE_ENABLED.getOrDefault(player.getUUID(), false),
+            TRANSCENDIUM_PHASE_ENABLED.getOrDefault(player.getUUID(), false)
          ),
          new CustomPacketPayload[0]
       );
@@ -607,8 +754,14 @@ public class ModArmorSetHandler {
       if (!Double.isNaN(surfaceY)) {
          boolean eyeInFluid = isWalkableFluid(level.getFluidState(BlockPos.containing(player.getEyePosition())), walkAny, walkLava);
          if (eyeInFluid) {
+            // 全身浸没：脚部与眼部（覆盖整个 1.8 高身体的上下两端）都在
+            // 可行走流体中。此时玩家是主动潜回水里，强制 motY ≥ +0.12
+            // 失效，完全交还给原版游泳物理（空格上浮 / Shift 下潜）。
+            boolean fullySubmerged = isWalkableFluid(level.getFluidState(feetPos), walkAny, walkLava);
             Vec3 mot = player.getDeltaMovement();
-            player.setDeltaMovement(mot.x * 0.5, Math.max(mot.y, 0.12), mot.z * 0.5);
+            if (!fullySubmerged) {
+               player.setDeltaMovement(mot.x * 0.5, Math.max(mot.y, 0.12), mot.z * 0.5);
+            }
          } else {
             double feetY = player.getY();
             double dy = feetY - surfaceY;
@@ -812,6 +965,90 @@ public class ModArmorSetHandler {
       }
    }
 
+   public static void toggleTranscendiumPhase(ServerPlayer player) {
+      ItemStack boots = player.getItemBySlot(EquipmentSlot.FEET);
+      if (boots.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
+         UUID uuid = player.getUUID();
+         boolean enabled = !TRANSCENDIUM_PHASE_ENABLED.getOrDefault(uuid, false);
+         if (enabled && !hasFullTranscendiumSet(player)) {
+            player.displayClientMessage(Component.literal("相位偏移需要穿戴全套超限合金盔甲").withStyle(ChatFormatting.RED), true);
+            return;
+         }
+
+         TRANSCENDIUM_PHASE_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("相位偏移", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      }
+   }
+
+   /**
+    * 手持功能盔甲经轮盘（本体"切换工具模式"键）直接设置功能状态。
+    * 状态按玩家持久化、与穿戴解耦，故此处不做穿戴校验；功能激活仍需穿戴
+    * 对应盔甲（虚化/相位类另需全套），手持预设状态穿上即生效。
+    */
+   public static void selectArmorFunctionFromHand(ServerPlayer player, InteractionHand hand, int state) {
+      ItemStack stack = player.getItemInHand(hand);
+      UUID uuid = player.getUUID();
+      if (stack.is((Item)ModItems.ROYAL_STEEL_BOOTS.get())) {
+         boolean enabled = state == 1;
+         COMFORTABLE_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("舒适", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+      } else if (stack.is((Item)ModItems.EMBER_METAL_BOOTS.get())) {
+         boolean enabled = state == 1;
+         LAVA_WALKER_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("蹈火", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      } else if (stack.is((Item)ModItems.FROST_METAL_BOOTS.get())) {
+         boolean enabled = state == 1;
+         FROST_SLIDE_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("凌霜", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      } else if (stack.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         boolean enabled = state == 1;
+         SPECTRAL_PHASE_ENABLED.put(uuid, enabled);
+         player.displayClientMessage(actionMessage("虚化", enabled ? "开" : "关", enabled ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      } else if (stack.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
+         // 蹈虚只有 普通(1)/超速(2) 两态；飞行能力由 handleTranscendiumBootsFlight
+         // 每 tick 按模式应用，手持设置无需触碰 abilities。
+         int mode = state == 2 ? 2 : 1;
+         IONOCRAFT_FLIGHT_MODE.put(uuid, mode);
+         player.displayClientMessage(actionMessage("蹈虚", mode == 2 ? "开" : "关", mode == 2 ? ChatFormatting.GREEN : ChatFormatting.RED), true);
+         saveToggleStates(player);
+      } else if (stack.is((Item)ModItems.TRANSCENDIUM_HELMET.get())) {
+         int mode = Math.min(Math.max(state, 0), 5);
+         HELMET_MODE.put(uuid, mode);
+         GLOWING_VISION_ENABLED.put(uuid, mode == 0 || mode == 4);
+         String[] names = new String[]{"高亮开", "高亮关", "夜视开", "夜视关", "全开", "全关"};
+         player.displayClientMessage(actionMessage("适应", names[mode], HELMET_MODE_COLORS[mode]), true);
+         saveToggleStates(player);
+         syncAbilityState(player);
+      } else if (stack.is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())) {
+         int barrierState = Math.min(Math.max(state, 0), 3);
+         NEUTRON_BARRIER_ENABLED.put(uuid, barrierState);
+         switch (barrierState) {
+            case 0:
+               player.displayClientMessage(actionMessage("中子屏罩", "关闭屏蔽", ChatFormatting.BLUE), true);
+               break;
+            case 1:
+               player.displayClientMessage(actionMessage("中子屏罩", "屏蔽敌对生物", ChatFormatting.GREEN), true);
+               break;
+            case 2:
+               player.displayClientMessage(actionMessage("中子屏罩", "屏蔽弹射物", ChatFormatting.AQUA), true);
+               break;
+            case 3:
+               player.displayClientMessage(actionMessage("中子屏罩", "全部屏蔽", ChatFormatting.LIGHT_PURPLE), true);
+         }
+
+         saveToggleStates(player);
+      }
+   }
+
    private static void handleMeaninglessConversion(Player player) {
       for (ItemStack stack : player.getInventory().items) {
          tryConvertFrostMetalPiece(player, stack);
@@ -902,6 +1139,12 @@ public class ModArmorSetHandler {
    }
 
    private static void handleTranscendiumReflect(Player player) {
+      // 旁观者附身其他实体时，服务端会把旁观者实体传送到摄像机目标坐标，
+      // 若照常跑屏障检测，会在被观察者身边吞弹幕、击退怪物并把粒子播在
+      // 摄像机（玩家自己）位置。旁观者不参与战斗，直接跳过整套屏障逻辑。
+      if (player.isSpectator()) {
+         return;
+      }
       ItemStack leggings = player.getItemBySlot(EquipmentSlot.LEGS);
       if (leggings.is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())) {
          Level level = player.level();
@@ -1082,20 +1325,11 @@ public class ModArmorSetHandler {
       boolean fullSet = hasFullTranscendiumSet(player);
       AttributeInstance waterEff = player.getAttribute(Attributes.WATER_MOVEMENT_EFFICIENCY);
       AttributeInstance moveEff = player.getAttribute(Attributes.MOVEMENT_EFFICIENCY);
-      if (waterEff != null) {
-         if (fullSet && waterEff.getModifier(TRANS_FLUID_EFFICIENCY_ID) == null) {
-            waterEff.addTransientModifier(new AttributeModifier(TRANS_FLUID_EFFICIENCY_ID, 1.0, Operation.ADD_VALUE));
-         } else if (!fullSet && waterEff.getModifier(TRANS_FLUID_EFFICIENCY_ID) != null) {
-            waterEff.removeModifier(TRANS_FLUID_EFFICIENCY_ID);
-         }
+      if (waterEff != null && waterEff.getModifier(TRANS_FLUID_EFFICIENCY_ID) != null) {
+         waterEff.removeModifier(TRANS_FLUID_EFFICIENCY_ID);
       }
-
-      if (moveEff != null) {
-         if (fullSet && moveEff.getModifier(TRANS_MOVEMENT_EFFICIENCY_ID) == null) {
-            moveEff.addTransientModifier(new AttributeModifier(TRANS_MOVEMENT_EFFICIENCY_ID, 1.0, Operation.ADD_VALUE));
-         } else if (!fullSet && moveEff.getModifier(TRANS_MOVEMENT_EFFICIENCY_ID) != null) {
-            moveEff.removeModifier(TRANS_MOVEMENT_EFFICIENCY_ID);
-         }
+      if (moveEff != null && moveEff.getModifier(TRANS_MOVEMENT_EFFICIENCY_ID) != null) {
+         moveEff.removeModifier(TRANS_MOVEMENT_EFFICIENCY_ID);
       }
    }
 
@@ -1166,6 +1400,13 @@ public class ModArmorSetHandler {
    public static void onLivingDamage(LivingIncomingDamageEvent event) {
       if (event.getEntity() instanceof Player player) {
          if (!player.level().isClientSide) {
+            // Phasing players stand inside blocks by design; vanilla suffocation
+            // would otherwise fire constantly.
+            if (event.getSource().is(DamageTypes.IN_WALL) && hasFullSpectralSet(player)) {
+               event.setCanceled(true);
+               return;
+            }
+
             if (isArmorProtectedDamage(player, event.getSource())) {
                event.setCanceled(true);
             }
@@ -1181,6 +1422,8 @@ public class ModArmorSetHandler {
       boolean emberHelmet = helmet.is((Item)ModItems.EMBER_METAL_HELMET.get());
       boolean frostHelmet = helmet.is((Item)ModItems.FROST_METAL_HELMET.get());
       if (boots.is((Item)ModItems.TRANSCENDIUM_BOOTS.get()) && source.is(DamageTypes.FALL)) {
+         return true;
+      } else if (transHelmet && source.is(DamageTypes.IN_WALL)) {
          return true;
       } else if ((transHelmet || emberHelmet) && source.is(DamageTypeTags.IS_FIRE)) {
          return true;
@@ -1198,6 +1441,20 @@ public class ModArmorSetHandler {
          && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get())
          && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())
          && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.TRANSCENDIUM_BOOTS.get());
+   }
+
+   /**
+    * 相位偏移（穿墙 + 观察者式视觉）的判定：
+    * 穿齐全套超限合金套 + 玩家按键开启相位偏移（默认关，状态持久化）。
+    * 不再要求飞行中，脱靴子/关开关立即失效。
+    */
+   public static boolean isTranscendiumFlightPhasing(Player player) {
+      if (!hasFullTranscendiumSet(player)) {
+         return false;
+      }
+      return player.level().isClientSide
+         ? ClientAbilityState.isTranscendiumPhase(player)
+         : TRANSCENDIUM_PHASE_ENABLED.getOrDefault(player.getUUID(), false);
    }
 
    public static boolean wearsHurtAnimationCancelArmor(Player player) {
@@ -1245,6 +1502,8 @@ public class ModArmorSetHandler {
       data.putInt("dingdongji:helmet_mode", HELMET_MODE.getOrDefault(uuid, 5));
       data.putBoolean("dingdongji:lava_walker", LAVA_WALKER_ENABLED.getOrDefault(uuid, false));
       data.putBoolean("dingdongji:frost_slide", FROST_SLIDE_ENABLED.getOrDefault(uuid, false));
+      data.putBoolean("dingdongji:spectral_phase", SPECTRAL_PHASE_ENABLED.getOrDefault(uuid, false));
+      data.putBoolean("dingdongji:transcendium_phase", TRANSCENDIUM_PHASE_ENABLED.getOrDefault(uuid, false));
       data.putBoolean("dingdongji:comfortable", COMFORTABLE_ENABLED.getOrDefault(uuid, false));
       data.putInt("dingdongji:neutron_barrier", NEUTRON_BARRIER_ENABLED.getOrDefault(uuid, 0));
       data.putInt("dingdongji:ionocraft_mode", IONOCRAFT_FLIGHT_MODE.getOrDefault(uuid, 1));
@@ -1258,6 +1517,8 @@ public class ModArmorSetHandler {
       GLOWING_VISION_ENABLED.put(uuid, helmetMode == 0 || helmetMode == 4);
       LAVA_WALKER_ENABLED.put(uuid, data.getBoolean("dingdongji:lava_walker"));
       FROST_SLIDE_ENABLED.put(uuid, data.getBoolean("dingdongji:frost_slide"));
+      SPECTRAL_PHASE_ENABLED.put(uuid, data.getBoolean("dingdongji:spectral_phase"));
+      TRANSCENDIUM_PHASE_ENABLED.put(uuid, data.getBoolean("dingdongji:transcendium_phase"));
       COMFORTABLE_ENABLED.put(uuid, data.getBoolean("dingdongji:comfortable"));
       NEUTRON_BARRIER_ENABLED.put(uuid, data.getInt("dingdongji:neutron_barrier"));
       int flightMode;

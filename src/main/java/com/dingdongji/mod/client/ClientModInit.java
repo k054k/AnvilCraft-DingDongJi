@@ -4,8 +4,13 @@ import com.dingdongji.mod.ModMenuTypes;
 import com.dingdongji.mod.client.screen.JiAnvilScreen;
 import com.dingdongji.mod.input.ModKeyBindings;
 import com.dingdongji.mod.inventory.JiAnvilMenu;
+import com.dingdongji.mod.item.ModItems;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ArmorItem;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 public final class ClientModInit {
@@ -17,10 +22,20 @@ public final class ClientModInit {
       modEventBus.addListener(ClientSetupHandler::onClientSetup);
       modEventBus.addListener(ClientSetupHandler::registerParticleProviders);
       modEventBus.addListener(ClientModInit::registerScreens);
+      modEventBus.addListener(ClientModInit::registerItemDecorations);
    }
 
    private static void registerScreens(RegisterMenuScreensEvent event) {
       MenuType<JiAnvilMenu> type = (MenuType<JiAnvilMenu>)ModMenuTypes.JI_ANVIL.get();
       event.register(type, JiAnvilScreen::new);
+   }
+
+   /** 给所有腿护甲（含铁砧两件套）注册口袋角标。 */
+   private static void registerItemDecorations(RegisterItemDecorationsEvent event) {
+      for (var item : BuiltInRegistries.ITEM) {
+         if (item instanceof ArmorItem armor && armor.getType().getSlot() == EquipmentSlot.LEGS) {
+            event.register(item, PouchDecoration.INSTANCE);
+         }
+      }
    }
 }

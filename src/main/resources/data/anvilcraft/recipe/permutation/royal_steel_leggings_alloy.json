@@ -1,0 +1,20 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "anvilcraft_alloyextension"
+    }
+  ],
+  "type": "anvilcraft:permutation",
+  "input": {
+    "items": "dingdongji:royal_steel_leggings"
+  },
+  "options": [
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "anvilcraft_alloyextension:steel_leggings"
+    }
+  ]
+}

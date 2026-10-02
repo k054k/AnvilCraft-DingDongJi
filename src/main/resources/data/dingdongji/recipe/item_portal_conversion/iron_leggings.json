@@ -1,0 +1,11 @@
+{
+  "type": "dingdongji:item_portal_conversion",
+  "input": {
+    "item": "minecraft:iron_leggings"
+  },
+  "portal": "minecraft:end_portal",
+  "result": {
+    "id": "dingdongji:spectral_leggings",
+    "chance": 0.03
+  }
+}

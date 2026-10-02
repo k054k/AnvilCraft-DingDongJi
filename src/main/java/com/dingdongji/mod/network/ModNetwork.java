@@ -20,6 +20,8 @@ public class ModNetwork {
       registrar.playToServer(AbilityTogglePacket.TYPE, AbilityTogglePacket.STREAM_CODEC, new ModNetwork.AbilityToggleHandler());
       registrar.playToServer(GlowingVisionTogglePacket.TYPE, GlowingVisionTogglePacket.STREAM_CODEC, new ModNetwork.GlowingVisionToggleHandler());
       registrar.playToServer(NeutronBarrierTogglePacket.TYPE, NeutronBarrierTogglePacket.STREAM_CODEC, new ModNetwork.NeutronBarrierToggleHandler());
+      registrar.playToServer(PhaseShiftTogglePacket.TYPE, PhaseShiftTogglePacket.STREAM_CODEC, new ModNetwork.PhaseShiftToggleHandler());
+      registrar.playToServer(ArmorFunctionSelectPacket.TYPE, ArmorFunctionSelectPacket.STREAM_CODEC, new ModNetwork.ArmorFunctionSelectHandler());
       registrar.playToServer(SwitchTemplateModePacket.TYPE, SwitchTemplateModePacket.STREAM_CODEC, SwitchTemplateModePacket::handle);
       registrar.playToServer(SelectTemplateModePacket.TYPE, SelectTemplateModePacket.STREAM_CODEC, SelectTemplateModePacket::handle);
       registrar.playToClient(IonocraftBootsFlyingPacket.TYPE, IonocraftBootsFlyingPacket.STREAM_CODEC, new ModNetwork.IonocraftBootsFlyingHandler());
@@ -34,8 +36,15 @@ public class ModNetwork {
          ModArmorSetHandler.toggleLavaWalker(player);
       } else if (boots.is((Item)ModItems.FROST_METAL_BOOTS.get())) {
          ModArmorSetHandler.toggleFrostSlide(player);
+      } else if (boots.is((Item)ModItems.SPECTRAL_BOOTS.get())) {
+         ModArmorSetHandler.togglePhaseVertical(player);
       } else if (boots.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())) {
          ModArmorSetHandler.toggleIonocraftFlight(player);
+      } else {
+         // No recognized boots equipped: the client may have optimistically
+         // flipped its local state in the same tick the boots came off, so
+         // resync the authoritative state to roll it back.
+         ModArmorSetHandler.syncAbilityState(player);
       }
    }
 
@@ -43,7 +52,7 @@ public class ModNetwork {
       public void handle(AbilityStateSyncPacket packet, IPayloadContext context) {
          context.enqueueWork(() -> {
             if (FMLEnvironment.dist.isClient()) {
-               ClientAbilityState.applySync(packet.lavaWalker(), packet.frostSlide(), packet.helmetMode());
+               ClientAbilityState.applySync(packet.lavaWalker(), packet.frostSlide(), packet.helmetMode(), packet.phaseVertical(), packet.transcendiumPhase());
             }
          });
       }
@@ -84,6 +93,26 @@ public class ModNetwork {
          context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer serverPlayer) {
                ModArmorSetHandler.toggleNeutronBarrier(serverPlayer);
+            }
+         });
+      }
+   }
+
+   public static class PhaseShiftToggleHandler implements IPayloadHandler<PhaseShiftTogglePacket> {
+      public void handle(PhaseShiftTogglePacket packet, IPayloadContext context) {
+         context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer serverPlayer) {
+               ModArmorSetHandler.toggleTranscendiumPhase(serverPlayer);
+            }
+         });
+      }
+   }
+
+   public static class ArmorFunctionSelectHandler implements IPayloadHandler<ArmorFunctionSelectPacket> {
+      public void handle(ArmorFunctionSelectPacket packet, IPayloadContext context) {
+         context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer serverPlayer) {
+               ModArmorSetHandler.selectArmorFunctionFromHand(serverPlayer, packet.hand(), packet.state());
             }
          });
       }

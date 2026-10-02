@@ -1,0 +1,13 @@
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier = "sources"
+}
+
+jar {
+    from(project.file("LICENSE"))
+    from(project.file("README.md"))
+}
+
+base {
+    archivesName = 'anvilcraft_dingdongji'
+}

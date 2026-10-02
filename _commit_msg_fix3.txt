@@ -1,0 +1,10 @@
+fix: 0.0.9-fix3 修复连锁锻造台shift快速移动崩溃
+
+- 删除 ChainSmithingMenuMixin：fix2 将注入点从不存在的 List.remove(Object)
+  改为 List.remove(int) 后，误把槽位号当作列表下标导致越界崩溃
+  （ChainSmithingMenu.java:528，QUICK_MOVE 时必现）
+- 连锁锻造台本质为皇家锻造台，模板槽 0-3 本就不消耗，无需"保护模板"注入；
+  删除后回归 anvilcraft_pigsplus 原版行为，同时修正被一并拦截的
+  附加材料槽列表移除逻辑
+- 创造模板联动不受影响：配方匹配走原版 SmithingTransformRecipe Mixin，
+  借用模板走父类 AdjacentSmithingMenu Mixin，连锁台天然继承

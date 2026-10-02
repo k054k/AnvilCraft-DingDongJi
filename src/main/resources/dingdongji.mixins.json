@@ -1,13 +1,13 @@
 {
   "required": false,
   "package": "com.dingdongji.mod.mixin",
+  "refmap": "dingdongji.refmap.json",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "mixins": [
     "AnvilBlockMixin",
     "SmithingMenuMixin",
     "SmithingTransformRecipeMixin",
-    "ChainSmithingMenuMixin",
     "BaseMultipleToOneSmithingRecipeMixin",
     "EmberSmithingMenuMixin",
     "FrostSmithingMenuMixin",
@@ -15,10 +15,11 @@
     "PermutationRecipeMixin",
     "DeformationRecipeMixin",
     "FallingBlockEntityMixin",
-    "RangedAttributeMixin",
     "GravityManagerMixin",
     "EntityAirDataAccessor",
+    "LivingEntityJumpingAccessor",
     "MixinAdjacentSmithingMenu",
+    "ChainSmithingMenuMixin",
     "MixinTranscendenceSmithingMenu",
     "MixinSmithingTemplateUsable",
     "MixinLivingEntityHurt",
@@ -30,12 +31,27 @@
     "MixinEntityBlockSlowdown",
     "MixinEntityGravity",
     "MixinAtmosphereDrag",
-    "MixinCanFreeze"
+    "MixinCanFreeze",
+    "MixinPlayerSpectralNoPhysics",
+    "MixinSpectralMoveCollision",
+    "MixinPlayerSpectralPose",
+    "MixinPocketInventoryCapacity",
+    "MixinPocketInventorySize",
+    "MixinPocketMenuSlots",
+    "MixinPocketSlotLayout",
+    "MixinPocketSlotAccess",
+    "MixinPlayerTranscendiumFlightPhase",
+    "MixinTranscendiumNoSuffocation",
+    "MixinTranscendiumPhaseEntityCollision",
+    "MixinTranscendiumPhasePose",
+    "MixinBlockItemSelfPlace",
+    "MixinPlayerWallDigSpeed"
   ],
   "client": [
     "AdjacentSmithingScreenMixin",
     "TranscendenceSmithingScreenMixin",
     "AccessorHumanoidArmorLayer",
+    "MixinHumanoidArmorLayerRenderType",
     "AccessorLivingEntityRenderer",
     "MixinLavaVision",
     "MixinFireOverlay",
@@ -43,7 +59,9 @@
     "MixinGuiOverlays",
     "MixinLightTextureNightVision",
     "MixinNightVisionScale",
-    "MixinTextureAtlasPulse"
+    "MixinPocketScreenSupport",
+    "MixinCreativePocketScreenSupport",
+    "MixinCreativeSlotWrapper"
   ],
   "injectors": {
     "defaultRequire": 0

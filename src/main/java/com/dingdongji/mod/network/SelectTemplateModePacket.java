@@ -41,6 +41,9 @@ public record SelectTemplateModePacket(int containerId, String mode) implements 
    }
 
    private static void applyMode(AbstractContainerMenu menu, String mode, ServerPlayer serverPlayer) {
+      if (!CreateTemplateMode.isValid(mode)) {
+         return;
+      }
       try {
          Class<?> adj = Class.forName("dev.dubhe.anvilcraft.inventory.AdjacentSmithingMenu");
          if (adj.isInstance(menu)) {

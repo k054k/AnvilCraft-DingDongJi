@@ -1,5 +1,6 @@
 package com.dingdongji.mod.client;
 
+import com.dingdongji.mod.ModClientConfig;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -14,11 +15,14 @@ import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
 import net.minecraft.client.renderer.RenderType.CompositeState;
@@ -26,8 +30,10 @@ import net.minecraft.client.renderer.RenderType.CompositeState.CompositeStateBui
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -69,6 +75,16 @@ public final class AfterimageManager {
       Minecraft mc = Minecraft.getInstance();
       ClientLevel level = mc.level;
       if (level != null && !mc.isPaused() && mc.player != null) {
+         // Client config gate: when the afterimage is disabled, drop every
+         // captured snapshot so the trail disappears on the next frame and no
+         // capture/render work is done at all (FPS saver on low-end machines).
+         if (!ModClientConfig.flightAfterimageEnabled()) {
+            if (!SNAPSHOTS.isEmpty()) {
+               SNAPSHOTS.clear();
+            }
+            return;
+         }
+
          if (level != trackedLevel) {
             SNAPSHOTS.clear();
             trackedLevel = level;
@@ -145,8 +161,11 @@ public final class AfterimageManager {
 
             for (AfterimageManager.RenderEntry e : entries) {
                float lifeFactor = e.lifeFactor;
-               int skinAlpha = (int)(200.0F * lifeFactor);
-               int gearAlpha = (int)(130.0 * Math.pow((double)lifeFactor, 1.5));
+               // Skin alpha deliberately lower than gear so armor always draws
+               // on top during translucent sorting — fixes "player outside armor"
+               // layering inversion users saw after the 0.0.8→0.0.9 update.
+               int skinAlpha = (int)(80.0F * lifeFactor);
+               int gearAlpha = (int)(150.0F * Math.pow((double)lifeFactor, 1.5));
                AfterimageManager.TintBufferSource tinted = new AfterimageManager.TintBufferSource(
                   immediate, e.player.getSkin().texture(), 170, 80, 255, skinAlpha, gearAlpha
                );
@@ -198,13 +217,25 @@ public final class AfterimageManager {
 
          mc.getEntityRenderDispatcher().crosshairPickEntity = null;
          EntityRenderer renderer = mc.getEntityRenderDispatcher().getRenderer(player);
+         HumanoidModel<?> skinModel = null;
+         boolean[] savedPartVisibility = null;
          int fullBright = 15728880;
          renderingAfterimage = true;
 
          try {
+            // 护甲覆盖处只保留护甲虚影、不渲染皮肤模型，避免皮肤透过护甲
+            // 缝隙外露形成错误层次；护甲层使用各自独立模型，不受此可见性影响。
+            if (renderer instanceof LivingEntityRenderer<?, ?> livingRenderer
+               && livingRenderer.getModel() instanceof HumanoidModel<?> humanoidModel) {
+               skinModel = humanoidModel;
+               savedPartVisibility = hideSkinUnderArmor(skinModel, snap);
+            }
             renderer.render(player, snap.yRot, 0.0F, pose, buffers, fullBright);
          } finally {
             renderingAfterimage = false;
+            if (skinModel != null) {
+               restoreSkinVisibility(skinModel, savedPartVisibility);
+            }
          }
       } finally {
          player.tickCount = savedTickCount;
@@ -223,6 +254,52 @@ public final class AfterimageManager {
          player.setPose(poseEnum);
          mc.getEntityRenderDispatcher().crosshairPickEntity = savedPicked;
          restoreWalkAnimation(player, savedWalk);
+      }
+   }
+
+   /**
+    * 按快照时的护甲穿戴隐藏皮肤模型被覆盖的部件，返回各部件原可见性。
+    * 覆盖关系与原版 {@code HumanoidArmorLayer#setPartVisibility} 一致：
+    * 头盔覆盖头(含帽子层)；胸甲覆盖躯干+双臂；护腿覆盖躯干+双腿；靴子覆盖双腿。
+    */
+   private static boolean[] hideSkinUnderArmor(HumanoidModel<?> model, Snapshot snap) {
+      ModelPart[] parts = new ModelPart[]{
+         model.head, model.hat, model.body, model.rightArm, model.leftArm, model.rightLeg, model.leftLeg
+      };
+      boolean[] saved = new boolean[parts.length];
+      for (int i = 0; i < parts.length; i++) {
+         saved[i] = parts[i].visible;
+      }
+      if (snap.helmet) {
+         model.head.visible = false;
+         model.hat.visible = false;
+      }
+      if (snap.chestplate) {
+         model.body.visible = false;
+         model.rightArm.visible = false;
+         model.leftArm.visible = false;
+      }
+      if (snap.leggings) {
+         model.body.visible = false;
+         model.rightLeg.visible = false;
+         model.leftLeg.visible = false;
+      }
+      if (snap.boots) {
+         model.rightLeg.visible = false;
+         model.leftLeg.visible = false;
+      }
+      return saved;
+   }
+
+   private static void restoreSkinVisibility(HumanoidModel<?> model, boolean[] saved) {
+      if (saved == null) {
+         return;
+      }
+      ModelPart[] parts = new ModelPart[]{
+         model.head, model.hat, model.body, model.rightArm, model.leftArm, model.rightLeg, model.leftLeg
+      };
+      for (int i = 0; i < parts.length; i++) {
+         parts[i].visible = saved[i];
       }
    }
 
@@ -304,7 +381,15 @@ public final class AfterimageManager {
          .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER)
          .setTextureState(new TextureStateShard(tex, false, false))
          .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-         .setCullState(RenderStateShard.NO_CULL)
+         // Default CULL_BACK: opaque renderers enable it to skip rear faces;
+         // translucent ones commonly disable it (NO_CULL) so you see back
+         // faces through front. That's exactly what causes the "player
+         // inside armor" overlap. For the afterimage we deliberately leave
+         // culling enabled — only front faces of both skin and armor draw,
+         // so the armor's front half never has the skin's front half bleed
+         // through on the same side. This is the same trick
+         // MixinHumanoidArmorLayerRenderType uses for the spectral suit,
+         // applied here to the full player+armor pipeline.
          .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
          .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE);
       if (polygonOffset) {
@@ -350,6 +435,10 @@ public final class AfterimageManager {
       final float limbSpeed;
       final Pose pose;
       final Vec3 vel;
+      final boolean helmet;
+      final boolean chestplate;
+      final boolean leggings;
+      final boolean boots;
 
       Snapshot(Player p, long bornAt) {
          Vec3 pos = p.getPosition(1.0F);
@@ -368,6 +457,10 @@ public final class AfterimageManager {
          this.limbPos = p.walkAnimation.position(1.0F);
          this.limbSpeed = p.walkAnimation.speed(1.0F);
          this.pose = p.getPose();
+         this.helmet = p.getItemBySlot(EquipmentSlot.HEAD).getItem() instanceof ArmorItem;
+         this.chestplate = p.getItemBySlot(EquipmentSlot.CHEST).getItem() instanceof ArmorItem;
+         this.leggings = p.getItemBySlot(EquipmentSlot.LEGS).getItem() instanceof ArmorItem;
+         this.boots = p.getItemBySlot(EquipmentSlot.FEET).getItem() instanceof ArmorItem;
       }
    }
 
@@ -391,7 +484,13 @@ public final class AfterimageManager {
       }
 
       public VertexConsumer getBuffer(RenderType type) {
-         ResourceLocation tex = AfterimageManager.textureOf(type);
+         // Only swap NEW_ENTITY types: glint types are POSITION_TEX and held
+         // block items use the BLOCK format. Rerouting those into a
+         // NEW_ENTITY buffer leaves required vertex elements unwritten and
+         // corrupts the batch (black shard geometry / build failure).
+         ResourceLocation tex = type.format() == DefaultVertexFormat.NEW_ENTITY
+            ? AfterimageManager.textureOf(type)
+            : null;
          RenderType out;
          int alpha;
          if (tex != null) {

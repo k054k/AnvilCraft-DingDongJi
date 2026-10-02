@@ -3,6 +3,7 @@ package com.dingdongji.mod.mixin;
 import com.dingdongji.mod.item.ModComponents;
 import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.item.component.CreateTemplateMode;
+import com.dingdongji.mod.util.CreateTemplatePinOrder;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -11,6 +12,9 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -38,13 +42,13 @@ public abstract class MixinTranscendenceSmithingMenu {
       method = {"refreshTemplateCatalog"},
       at = {@At("TAIL")}
    )
-   private void dingdongji$prioritizeCreateTemplate(CallbackInfo ci) {
+   private void dingdongji$expandCreateTemplate(CallbackInfo ci) {
       try {
          Class<?> clazz = Class.forName("dev.dubhe.anvilcraft.inventory.TranscendenceSmithingMenu");
          Field field = clazz.getDeclaredField("templates");
          field.setAccessible(true);
          List<ItemStack> templates = (List<ItemStack>)field.get(this);
-         if (templates == null || templates.size() <= 1) {
+         if (templates == null || templates.isEmpty()) {
             return;
          }
 
@@ -80,21 +84,34 @@ public abstract class MixinTranscendenceSmithingMenu {
          ItemStack zeta = base.copy();
          zeta.set((DataComponentType)ModComponents.CREATE_TEMPLATE_MODE.get(), CreateTemplateMode.ZETA);
          expansion.add(zeta);
-         List<ItemStack> reordered = new ArrayList<>(templates.size() + expansion.size());
-         reordered.addAll(expansion);
+
+         // 服务端目录保持自然序：把基项原位替换为 6 个变体，绝不置顶。
+         // 是否置顶是纯客户端表现（CreateTemplatePinOrder 读本地配置）。
+         // 原方法产出的列表来自 Stream.toList()（不可变），故重建后整体写回。
+         List<ItemStack> natural = new ArrayList<>(templates.size() + expansion.size() - 1);
 
          for (int ix = 0; ix < templates.size(); ix++) {
             if (ix != createIdx) {
-               reordered.add(templates.get(ix));
+               natural.add(templates.get(ix));
             }
          }
 
-         field.set(this, reordered);
+         natural.addAll(createIdx, expansion);
+         field.set(this, natural);
          Field dirtyField = clazz.getDeclaredField("templateDataDirty");
          dirtyField.setAccessible(true);
          dirtyField.setBoolean(this, true);
       } catch (Exception var15) {
       }
+   }
+
+   @Inject(
+      method = {"handleTemplateSync"},
+      at = {@At("TAIL")},
+      remap = false
+   )
+   private void dingdongji$pinOrderAfterSync(List<ItemStack> templates, List<?> favorites, ItemStack selected, CallbackInfo ci) {
+      CreateTemplatePinOrder.onSynced(this);
    }
 
    @Inject(
@@ -223,6 +240,59 @@ public abstract class MixinTranscendenceSmithingMenu {
             cir.setReturnValue(m1.mode().equals(m2.mode()));
          }
       } catch (Exception var7) {
+      }
+   }
+
+   /**
+    * 手持万用模板打开的面板 access 为 ContainerLevelAccess.NULL（无方块位置），
+    * 原 stillValid 的 access.evaluate 会返回 false 导致面板被立即关闭，
+    * 此处特判 NULL 直接放行。
+    */
+   @Inject(
+      method = {"stillValid"},
+      at = {@At("HEAD")},
+      cancellable = true,
+      remap = false
+   )
+   private void ddj$stillValidHandheld(CallbackInfoReturnable<Boolean> cir) {
+      try {
+         Field af = Class.forName("dev.dubhe.anvilcraft.inventory.TranscendenceSmithingMenu").getDeclaredField("access");
+         af.setAccessible(true);
+         if (af.get(this) == ContainerLevelAccess.NULL) {
+            cir.setReturnValue(true);
+         }
+      } catch (Exception var4) {
+      }
+   }
+
+   /**
+    * 原 removed 通过 access.execute 返还输入栏物品，access 为 NULL 时 execute
+    * 不执行会吞掉玩家放入的材料。此处 TAIL 追加：access 为 NULL 时（仅服务端）
+    * 手动调用 AbstractContainerMenu#clearContainer 返还两个输入栏。
+    */
+   @Inject(
+      method = {"removed"},
+      at = {@At("TAIL")},
+      remap = false
+   )
+   private void ddj$returnInputsOnHandheldClose(Player player, CallbackInfo ci) {
+      try {
+         Class<?> clazz = Class.forName("dev.dubhe.anvilcraft.inventory.TranscendenceSmithingMenu");
+         Field af = clazz.getDeclaredField("access");
+         af.setAccessible(true);
+         if (af.get(this) != ContainerLevelAccess.NULL || player.level().isClientSide) {
+            return;
+         }
+
+         Field rf = clazz.getDeclaredField("royalFrostInputs");
+         rf.setAccessible(true);
+         Field ef = clazz.getDeclaredField("emberInputs");
+         ef.setAccessible(true);
+         Method clear = AbstractContainerMenu.class.getDeclaredMethod("clearContainer", Player.class, Container.class);
+         clear.setAccessible(true);
+         clear.invoke(this, player, (Container)rf.get(this));
+         clear.invoke(this, player, (Container)ef.get(this));
+      } catch (Exception var8) {
       }
    }
 }

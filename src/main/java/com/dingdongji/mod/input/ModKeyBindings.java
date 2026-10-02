@@ -5,6 +5,7 @@ import com.dingdongji.mod.item.ModItems;
 import com.dingdongji.mod.network.AbilityTogglePacket;
 import com.dingdongji.mod.network.GlowingVisionTogglePacket;
 import com.dingdongji.mod.network.NeutronBarrierTogglePacket;
+import com.dingdongji.mod.network.PhaseShiftTogglePacket;
 import com.mojang.blaze3d.platform.InputConstants.Type;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -19,14 +20,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class ModKeyBindings {
    public static final String CATEGORY = "key.categories.dingdongji";
    public static final String ABILITY_NAME = "key.dingdongji.ability_toggle";
-   public static final String FROST_SLIDE_NAME = "key.dingdongji.frost_slide_toggle";
    public static final String GLOWING_NAME = "key.dingdongji.glowing_vision_toggle";
    public static final String NEUTRON_BARRIER_NAME = "key.dingdongji.neutron_barrier_toggle";
    public static final KeyMapping ABILITY_KEY = new KeyMapping(
       "key.dingdongji.ability_toggle", KeyConflictContext.IN_GAME, Type.KEYSYM, 86, "key.categories.dingdongji"
-   );
-   public static final KeyMapping FROST_SLIDE_KEY = new KeyMapping(
-      "key.dingdongji.frost_slide_toggle", KeyConflictContext.IN_GAME, Type.KEYSYM, 86, "key.categories.dingdongji"
    );
    public static final KeyMapping GLOWING_VISION_KEY = new KeyMapping(
       "key.dingdongji.glowing_vision_toggle", KeyConflictContext.IN_GAME, Type.KEYSYM, 67, "key.categories.dingdongji"
@@ -34,12 +31,16 @@ public class ModKeyBindings {
    public static final KeyMapping NEUTRON_BARRIER_KEY = new KeyMapping(
       "key.dingdongji.neutron_barrier_toggle", KeyConflictContext.IN_GAME, Type.KEYSYM, 90, "key.categories.dingdongji"
    );
+   public static final String PHASE_SHIFT_NAME = "key.dingdongji.phase_shift_toggle";
+   public static final KeyMapping PHASE_SHIFT_KEY = new KeyMapping(
+      "key.dingdongji.phase_shift_toggle", KeyConflictContext.IN_GAME, Type.KEYSYM, 88, "key.categories.dingdongji"
+   );
 
    public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
       event.register(ABILITY_KEY);
-      event.register(FROST_SLIDE_KEY);
       event.register(GLOWING_VISION_KEY);
       event.register(NEUTRON_BARRIER_KEY);
+      event.register(PHASE_SHIFT_KEY);
    }
 
    private static void sendBootsAbilityToggle(Minecraft mc) {
@@ -56,16 +57,11 @@ public class ModKeyBindings {
    }
 
    public static void tick(Minecraft mc) {
+      // Single "toggle boots ability" key for every pair of boots: server-side
+      // the handler dispatches by the currently worn boots and each ability has
+      // its own per-player state, so toggling one pair never affects another.
       while (ABILITY_KEY.consumeClick()) {
          sendBootsAbilityToggle(mc);
-      }
-
-      boolean sameBinding = ABILITY_KEY.getKey().equals(FROST_SLIDE_KEY.getKey());
-
-      while (FROST_SLIDE_KEY.consumeClick()) {
-         if (!sameBinding) {
-            sendBootsAbilityToggle(mc);
-         }
       }
 
       for (; GLOWING_VISION_KEY.consumeClick(); PacketDistributor.sendToServer(new GlowingVisionTogglePacket(), new CustomPacketPayload[0])) {
@@ -79,6 +75,10 @@ public class ModKeyBindings {
 
       while (NEUTRON_BARRIER_KEY.consumeClick()) {
          PacketDistributor.sendToServer(new NeutronBarrierTogglePacket(), new CustomPacketPayload[0]);
+      }
+
+      while (PHASE_SHIFT_KEY.consumeClick()) {
+         PacketDistributor.sendToServer(new PhaseShiftTogglePacket(), new CustomPacketPayload[0]);
       }
    }
 }

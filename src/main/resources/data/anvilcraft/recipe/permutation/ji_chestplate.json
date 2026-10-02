@@ -1,0 +1,14 @@
+{
+    "input":  {
+                  "items":  "dingdongji:ji_chestplate"
+              },
+    "options":  [
+                    {
+                        "material":  {
+                                         "type":  "anvilcraft:empty"
+                                     },
+                        "result":  "minecraft:golden_chestplate"
+                    }
+                ],
+    "type":  "anvilcraft:permutation"
+}

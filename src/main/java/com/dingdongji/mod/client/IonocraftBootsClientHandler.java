@@ -89,7 +89,9 @@ public class IonocraftBootsClientHandler {
       }
 
       forwardKeyWasDown = forwardDown;
-      if (isWearingTranscendiumBoots(local) && local.getAbilities().flying && !local.isCreative() && !local.isSpectator()) {
+      // Deliberately do NOT gate on isCreative: creative players need the
+      // dash-sprint too since their normal sprint is also suppressed in flight.
+      if (isWearingTranscendiumBoots(local) && local.getAbilities().flying && !local.isSpectator()) {
          boolean wantSprint = mc.options.keySprint.isDown() || doubleTap;
          if (wantSprint
             && !local.isSprinting()

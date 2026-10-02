@@ -1,13 +1,18 @@
 package com.dingdongji.mod.client.layer;
 
+import com.dingdongji.mod.ModClientConfig;
 import com.dingdongji.mod.client.AfterimageManager;
 import com.dingdongji.mod.client.GlowPhaseTracker;
 import com.dingdongji.mod.item.ModItems;
+import dev.dubhe.anvilcraft.init.ModDataAttachments;
+import dev.dubhe.anvilcraft.item.IonocraftBackpackItem;
+import dev.dubhe.anvilcraft.item.WeatherproofChestplateItem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Set;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -40,11 +45,13 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
    private final HumanoidModel<T> innerModel;
    private final HumanoidModel<T> outerModel;
 
-   private static int breathColor(EmissiveArmorLayer.BreathSet set, float ageTicks) {
+   private static int breathColor(EmissiveArmorLayer.BreathSet set, float ageTicks, float partialTicks) {
       // Darkness is replayed from the actual block outline animation loaded
       // by the game (mcmeta frames/timings/interpolate), ticking on the same
-      // atlas pulse. Fallback only if the sprite definition is unavailable.
-      float q = GlowPhaseTracker.darkness(set.outline);
+      // 20 TPS client-tick clock and interpolated by partialTicks, so shader
+      // pipelines that tick the atlas per-frame cannot speed it up. Fallback
+      // only if the sprite definition is unavailable.
+      float q = GlowPhaseTracker.darkness(set.outline, partialTicks);
       if (q < 0.0F) {
          float p = ageTicks % BREATH_PERIOD / BREATH_PERIOD;
          q = p < 0.5F ? 1.0F - p * 2.0F : p * 2.0F - 1.0F;
@@ -56,6 +63,43 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       return 0xFF000000 | r << 16 | g << 8 | b;
    }
 
+   /**
+    * 飘升机胸甲装饰牌的三态发光——颜色完全取自当前基础贴图对应的 glow 贴图
+    * 真实色带像素（在网 _glow / 离网 _off_glow），mask 只提供位置与形状，
+    * vertex color 用来调亮度：
+    * <ul>
+    *   <li>在电网中：vertex 全白 → 原贴图色带完全透出，常亮不呼吸；</li>
+    *   <li>耐候胸甲离网且电池有余电：vertex 在 0.4 / 1.0 之间呼吸插值，
+    *       是唯一会呼吸的状态；</li>
+    *   <li>耐候胸甲电池耗尽：vertex 亮度压到 0.15，暗淡色块；</li>
+    *   <li>飘升机背包离网（无电池部件）：vertex 全白 → 红石色 _off_glow
+    *       贴图原色常亮，不呼吸；且按环境光照渲染而非满亮度，夜间不发光。</li>
+    * </ul>
+    */
+   private static int anvilBadgeColor(Item item, ItemStack stack, LivingEntity entity, float ageTicks) {
+      boolean inGrid = Boolean.TRUE.equals(entity.getData(ModDataAttachments.IN_POWER_GRID));
+      if (inGrid) {
+         return 0xFFFFFFFF;
+      }
+
+      // 只有自带电池的耐候胸甲离网时才需要能量指示（呼吸=耗电中，暗淡=耗尽）
+      if (item instanceof WeatherproofChestplateItem) {
+         if (WeatherproofChestplateItem.getEnergyStored(stack) > 0) {
+            float p = ageTicks % BREATH_PERIOD / BREATH_PERIOD;
+            float q = p < 0.5F ? 1.0F - p * 2.0F : p * 2.0F - 1.0F;
+            float brightness = 0.4F + 0.6F * q;
+            int b = Math.round(brightness * 255.0F);
+            return 0xFF000000 | b << 16 | b << 8 | b;
+         }
+
+         int dim = Math.round(0.15F * 255.0F);
+         return 0xFF000000 | dim << 16 | dim << 8 | dim;
+      }
+
+      // 飘升机背包：离网红石色常亮，不呼吸
+      return 0xFFFFFFFF;
+   }
+
    private static EmissiveArmorLayer.BreathSet breathSetOf(Item item) {
       if (item == ModItems.EMBER_METAL_HELMET.get()
          || item == ModItems.EMBER_METAL_CHESTPLATE.get()
@@ -63,12 +107,12 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
          || item == ModItems.EMBER_METAL_BOOTS.get()) {
          return EmissiveArmorLayer.BreathSet.EMBER;
       } else {
-         return item != ModItems.TRANSCENDIUM_HELMET.get()
-               && item != ModItems.TRANSCENDIUM_CHESTPLATE.get()
-               && item != ModItems.TRANSCENDIUM_LEGGINGS.get()
-               && item != ModItems.TRANSCENDIUM_BOOTS.get()
-            ? EmissiveArmorLayer.BreathSet.FROST
-            : EmissiveArmorLayer.BreathSet.TRANS;
+         return item == ModItems.TRANSCENDIUM_HELMET.get()
+            || item == ModItems.TRANSCENDIUM_CHESTPLATE.get()
+            || item == ModItems.TRANSCENDIUM_LEGGINGS.get()
+            || item == ModItems.TRANSCENDIUM_BOOTS.get()
+         ? EmissiveArmorLayer.BreathSet.TRANS
+         : EmissiveArmorLayer.BreathSet.FROST;
       }
    }
 
@@ -90,40 +134,99 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
       float netHeadYaw,
       float headPitch
    ) {
+      if (!ModClientConfig.glowBandEnabled()) {
+         return;
+      }
+
       if (!AfterimageManager.isRenderingAfterimage()) {
          float breathTicks = (float)entity.level().getGameTime() + partialTicks;
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.CHEST, breathTicks);
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.LEGS, breathTicks);
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.FEET, breathTicks);
-         this.renderPiece(pose, buffers, entity, EquipmentSlot.HEAD, breathTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.CHEST, breathTicks, partialTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.LEGS, breathTicks, partialTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.FEET, breathTicks, partialTicks);
+         this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.HEAD, breathTicks, partialTicks);
       }
    }
 
-   private void renderPiece(PoseStack pose, MultiBufferSource buffers, T entity, EquipmentSlot slot, float breathTicks) {
+   private void renderPiece(PoseStack pose, MultiBufferSource buffers, int packedLight, T entity, EquipmentSlot slot, float breathTicks, float partialTicks) {
       ItemStack stack = entity.getItemBySlot(slot);
-      if (stack.getItem() instanceof ArmorItem armorItem) {
-         if (armorItem.getEquipmentSlot() == slot && GLOW_ARMOR.contains(armorItem)) {
-            boolean inner = slot == EquipmentSlot.LEGS;
-            HumanoidModel<T> model = inner ? this.innerModel : this.outerModel;
-            ((HumanoidModel)this.getParentModel()).copyPropertiesTo(model);
-            setPartVisibility(model, slot);
-            int color = breathColor(breathSetOf(armorItem), breathTicks);
-            ArmorMaterial material = (ArmorMaterial)armorItem.getMaterial().value();
+      if (stack.getItem() instanceof ArmorItem armorItem && armorItem.getEquipmentSlot() == slot) {
+         Item item = armorItem;
+         boolean ddjGlow = GLOW_ARMOR.contains(item);
+         // AnvilCraft's two spacesuit chestplates (purple ionocraft backpack and
+         // orange-white weatherproof chestplate) carry the front+back diamond
+         // badges modelled as extra body cubes. They share the same custom
+         // HumanoidModel path, so the breathing overlay can be drawn exactly
+         // like our own armor glow.
+         boolean anvilBadge = slot == EquipmentSlot.CHEST && item instanceof IonocraftBackpackItem;
+         if (!ddjGlow && !anvilBadge) {
+            return;
+         }
 
-            for (Layer layer : material.layers()) {
-               ResourceLocation armorTexture = ClientHooks.getArmorTexture(entity, stack, layer, inner, slot);
-               ResourceLocation glowTexture = toGlowLocation(armorTexture);
-               VertexConsumer consumer = buffers.getBuffer(GlowArmorRenderType.glowArmor(glowTexture));
-               model.renderToBuffer(pose, consumer, 15728880, OverlayTexture.NO_OVERLAY, color);
+         boolean inner = slot == EquipmentSlot.LEGS;
+         HumanoidModel<T> context = inner ? this.innerModel : this.outerModel;
+         // Resolve the same custom armor model the base armor layer uses
+         // (e.g. neutron suit / AnvilCraft spacesuit geometry), so the
+         // dark underlay and emissive overlay align with the worn shape.
+         HumanoidModel<T> model = (HumanoidModel<T>)net.neoforged.neoforge.client.extensions.common.IClientItemExtensions.of(stack)
+            .getHumanoidArmorModel(entity, stack, slot, context);
+         ((HumanoidModel)this.getParentModel()).copyPropertiesTo(model);
+         setPartVisibility(model, slot);
+         BreathSet breathSet = anvilBadge ? null : breathSetOf(item);
+         int color = anvilBadge ? anvilBadgeColor(item, stack, entity, breathTicks) : breathColor(breathSet, breathTicks, partialTicks);
+         ArmorMaterial material = (ArmorMaterial)armorItem.getMaterial().value();
+
+         for (Layer layer : material.layers()) {
+            ResourceLocation armorTexture = ClientHooks.getArmorTexture(entity, stack, layer, inner, slot);
+            ResourceLocation glowTexture = anvilBadge ? anvilBadgeGlowLocation(armorTexture) : toSuffixLocation(armorTexture, "_glow.png");
+            if (ddjGlow) {
+               // When the band is enabled the vanilla armor texture (which carries
+               // a static bright band) is first overpainted with the "_dark"
+               // variant whose band area is painted black, so only the animated
+               // emissive layer below supplies the band color. The dark base only
+               // exists for the outer model (layer_1); the leggings layer keeps
+               // its vanilla texture. The AnvilCraft badges keep their original
+               // base texture — only the badges are overlaid with light.
+               if (!inner) {
+                  ResourceLocation darkTexture = toSuffixLocation(armorTexture, "_dark.png");
+                  VertexConsumer baseConsumer = buffers.getBuffer(RenderType.armorCutoutNoCull(darkTexture));
+                  model.renderToBuffer(pose, baseConsumer, packedLight, OverlayTexture.NO_OVERLAY, -1);
+               }
             }
+
+            VertexConsumer consumer = buffers.getBuffer(GlowArmorRenderType.glowArmor(glowTexture));
+            // 飘升机背包离网时红带不发光：按环境光照渲染（贴图原色，夜间不亮）。
+            // 在电网常亮、耐候离网呼吸仍用满亮度。
+            boolean ionocraftOffGrid = anvilBadge && !(item instanceof WeatherproofChestplateItem)
+               && !Boolean.TRUE.equals(entity.getData(ModDataAttachments.IN_POWER_GRID));
+            int glowLight = ionocraftOffGrid ? packedLight : 15728880;
+            // Vanilla eyes-layer recipe (spider / enderman): redraw the exact
+            // same model with the identical pose. Bit-identical vertices give
+            // bit-identical rasterized depth, so the LEQUAL depth test always
+            // passes - no z-fighting, no dropped pixels while limbs swing, no
+            // offset seam at any angle. Any scaling would break bit equality
+            // and reintroduce all three artifacts, hence deliberately none.
+            model.renderToBuffer(pose, consumer, glowLight, OverlayTexture.NO_OVERLAY, color);
          }
       }
    }
 
-   private static ResourceLocation toGlowLocation(ResourceLocation armorTexture) {
+   // The spacesuit badge glow masks live in our own namespace. Only the badge
+   // UV box (u48-64, v56-64) is opaque in those masks, so redrawing the whole
+   // spacesuit model lights exactly the two diamond badges and nothing else.
+   private static ResourceLocation anvilBadgeGlowLocation(ResourceLocation armorTexture) {
+      String path = armorTexture.getPath();
+      String file = path.substring(path.lastIndexOf('/') + 1);
+      if (file.endsWith(".png")) {
+         file = file.substring(0, file.length() - 4);
+      }
+
+      return ResourceLocation.fromNamespaceAndPath("dingdongji", "textures/entity/equipment/" + file + "_glow.png");
+   }
+
+   private static ResourceLocation toSuffixLocation(ResourceLocation armorTexture, String suffix) {
       String path = armorTexture.getPath();
       if (path.endsWith(".png")) {
-         path = path.substring(0, path.length() - 4) + "_glow.png";
+         path = path.substring(0, path.length() - 4) + suffix;
       }
 
       return ResourceLocation.fromNamespaceAndPath(armorTexture.getNamespace(), path);

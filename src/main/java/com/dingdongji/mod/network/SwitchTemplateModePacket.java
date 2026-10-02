@@ -39,7 +39,7 @@ public record SwitchTemplateModePacket(InteractionHand hand, String mode) implem
          Player player = context.player();
          if (player != null) {
             ItemStack stack = player.getItemInHand(packet.hand());
-            if (stack.is((Item)ModItems.CREATE_TEMPLATE.get())) {
+            if (stack.is((Item)ModItems.CREATE_TEMPLATE.get()) && CreateTemplateMode.isValid(packet.mode())) {
                CreateTemplateMode newMode = new CreateTemplateMode(packet.mode());
                stack.set((DataComponentType)ModComponents.CREATE_TEMPLATE_MODE.get(), newMode);
             }

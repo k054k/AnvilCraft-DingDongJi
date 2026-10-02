@@ -1,0 +1,26 @@
+﻿{
+  "type": "anvilcraft:permutation",
+  "input": {
+    "items": "dingdongji:royal_steel_boots"
+  },
+  "options": [
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:diamond_boots"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:iron_boots"
+    },
+    {
+      "material": {
+        "type": "anvilcraft:empty"
+      },
+      "result": "minecraft:golden_boots"
+    }
+  ]
+}
