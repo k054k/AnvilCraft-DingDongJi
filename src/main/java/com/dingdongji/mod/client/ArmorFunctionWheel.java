@@ -37,7 +37,7 @@ public final class ArmorFunctionWheel {
          || stack.is((Item)ModItems.SPECTRAL_BOOTS.get())
          || stack.is((Item)ModItems.TRANSCENDIUM_BOOTS.get())
          || stack.is((Item)ModItems.TRANSCENDIUM_HELMET.get())
-         || stack.is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get());
+         || stack.is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get());
    }
 
    public static void press(InteractionHand hand) {
@@ -71,7 +71,7 @@ public final class ArmorFunctionWheel {
          entries.add(Entry.ofEffect("夜视关", 3, "blindness"));
          entries.add(new Entry("全开", 4, markIcon("anvilcraft:check_mark", stack)));
          entries.add(new Entry("全关", 5, markIcon("anvilcraft:cross_mark", stack)));
-      } else if (stack.is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())) {
+      } else if (stack.is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get())) {
          entries.add(new Entry("关闭屏蔽", 0, markIcon("anvilcraft:cross_mark", stack)));
          entries.add(new Entry("屏蔽敌对生物", 1, new ItemStack(Items.SHIELD)));
          entries.add(new Entry("屏蔽弹射物", 2, new ItemStack(Items.ARROW)));

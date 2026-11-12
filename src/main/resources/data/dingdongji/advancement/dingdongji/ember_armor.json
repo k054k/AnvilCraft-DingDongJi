@@ -1,0 +1,64 @@
+{
+  "parent": "dingdongji:dingdongji/durable_goods",
+  "criteria": {
+    "ember_helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ember_metal_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ember_chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ember_metal_chestplate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ember_leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ember_metal_leggings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ember_boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ember_metal_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.ember_armor.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:ember_metal_helmet"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.ember_armor.title"
+    }
+  },
+  "requirements": [
+    ["ember_helmet"],
+    ["ember_chestplate"],
+    ["ember_leggings"],
+    ["ember_boots"]
+  ],
+  "sends_telemetry_event": true
+}

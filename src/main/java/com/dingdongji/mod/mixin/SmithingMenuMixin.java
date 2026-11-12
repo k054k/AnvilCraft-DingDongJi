@@ -13,28 +13,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin({SmithingMenu.class})
 public abstract class SmithingMenuMixin {
    @Unique
-   private ItemStack dingdongji$savedCreateTemplate = ItemStack.EMPTY;
+   private ItemStack ddj$savedCreateTemplate = ItemStack.EMPTY;
 
    @Inject(
       method = {"onTake"},
       at = {@At("HEAD")}
    )
-   private void dingdongji$onTakeHead(Player player, ItemStack stack, CallbackInfo ci) {
+   private void ddj$onTakeHead(Player player, ItemStack stack, CallbackInfo ci) {
       SmithingMenu self = (SmithingMenu)(Object)this;
       ItemStack template = self.getSlot(0).getItem();
-      this.dingdongji$savedCreateTemplate = ModItems.isCreateTemplate(template) ? template.copy() : ItemStack.EMPTY;
+      this.ddj$savedCreateTemplate = ModItems.isCreateTemplate(template) ? template.copy() : ItemStack.EMPTY;
    }
 
    @Inject(
       method = {"onTake"},
       at = {@At("TAIL")}
    )
-   private void dingdongji$onTakeTail(Player player, ItemStack stack, CallbackInfo ci) {
-      if (!this.dingdongji$savedCreateTemplate.isEmpty()) {
+   private void ddj$onTakeTail(Player player, ItemStack stack, CallbackInfo ci) {
+      if (!this.ddj$savedCreateTemplate.isEmpty()) {
          SmithingMenu self = (SmithingMenu)(Object)this;
-         self.getSlot(0).set(this.dingdongji$savedCreateTemplate.copy());
+         self.getSlot(0).set(this.ddj$savedCreateTemplate.copy());
       }
 
-      this.dingdongji$savedCreateTemplate = ItemStack.EMPTY;
+      this.ddj$savedCreateTemplate = ItemStack.EMPTY;
    }
 }

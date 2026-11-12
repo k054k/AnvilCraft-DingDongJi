@@ -24,11 +24,11 @@ public class ModArmorMaterials {
    public static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(Registries.ARMOR_MATERIAL, "dingdongji");
    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> JI = ARMOR_MATERIALS.register(
       "ji", () -> new ArmorMaterial((Map)Util.make(new EnumMap(Type.class), map -> {
-            map.put(Type.HELMET, 3);
-            map.put(Type.CHESTPLATE, 8);
-            map.put(Type.LEGGINGS, 6);
-            map.put(Type.BOOTS, 3);
-         }), 10, SoundEvents.ARMOR_EQUIP_DIAMOND, () -> Ingredient.of(new ItemLike[]{Items.GOLD_INGOT}), List.of(new Layer(KryptonMod.modLoc("ji"))), 2.0F, 0.0F)
+            map.put(Type.HELMET, 2);
+            map.put(Type.CHESTPLATE, 6);
+            map.put(Type.LEGGINGS, 5);
+            map.put(Type.BOOTS, 2);
+         }), 10, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.of(new ItemLike[]{ModItems.JI_INGOT.get()}), List.of(new Layer(KryptonMod.modLoc("ji"))), 0.0F, 0.0F)
    );
    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> ROYAL_STEEL = ARMOR_MATERIALS.register(
       "royal_steel", () -> new ArmorMaterial((Map)Util.make(new EnumMap(Type.class), map -> {
@@ -70,6 +70,16 @@ public class ModArmorMaterials {
             map.put(Type.LEGGINGS, 0);
             map.put(Type.BOOTS, 0);
          }), 15, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.of(new ItemLike[]{Items.IRON_INGOT}), List.of(new Layer(KryptonMod.modLoc("spectral"))), 0.0F, 0.0F)
+   );
+   // 蹲起式发电器：工具定位，仅 2 点护甲（1 格盔甲图标）；ArmorItem 构造仍需材质占位。
+   // 穿戴贴图走自定义模型（SquatGeneratorModel），材质层贴图不使用。
+   public static final DeferredHolder<ArmorMaterial, ArmorMaterial> SQUAT_GENERATOR = ARMOR_MATERIALS.register(
+      "squat_generator", () -> new ArmorMaterial((Map)Util.make(new EnumMap(Type.class), map -> {
+            map.put(Type.HELMET, 0);
+            map.put(Type.CHESTPLATE, 0);
+            map.put(Type.LEGGINGS, 2);
+            map.put(Type.BOOTS, 0);
+         }), 0, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.EMPTY, List.of(new Layer(KryptonMod.modLoc("squat_generator"))), 0.0F, 0.0F)
    );
    public static Holder<ArmorMaterial> holder(DeferredHolder<ArmorMaterial, ArmorMaterial> deferred) {
       return BuiltInRegistries.ARMOR_MATERIAL.getHolderOrThrow(deferred.getKey());

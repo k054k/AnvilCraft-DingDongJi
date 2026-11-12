@@ -28,7 +28,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class JiAnvilBlock extends AnvilBlock {
-   private static final Style GOLD_STYLE = Style.EMPTY.withColor(16236032);
+   private static final Style GRAY_STYLE = Style.EMPTY.withColor(11184810);
    private static final VoxelShape SHAPE_NS = Shapes.or(
       Block.box(2.0, 0.0, 2.0, 14.0, 4.0, 14.0), new VoxelShape[]{Block.box(5.0, 4.0, 4.0, 11.0, 10.0, 12.0), Block.box(3.0, 10.0, 0.0, 13.0, 16.0, 16.0)}
    );
@@ -65,7 +65,7 @@ public class JiAnvilBlock extends AnvilBlock {
    }
 
    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-      tooltip.add(Component.translatable("tooltip.dingdongji.ji_anvil.desc").setStyle(GOLD_STYLE));
+      tooltip.add(Component.translatable("tooltip.dingdongji.ji_anvil.desc").setStyle(GRAY_STYLE));
    }
 
    public void onLand(Level level, BlockPos pos, BlockState state, BlockState replacedState, FallingBlockEntity entity) {

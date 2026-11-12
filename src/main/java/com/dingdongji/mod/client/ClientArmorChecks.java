@@ -47,6 +47,33 @@ public final class ClientArmorChecks {
       }
    }
 
+   public static boolean hasFullEmberSet() {
+      Player player = localPlayer();
+      return player != null
+         && player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.EMBER_METAL_HELMET.get())
+         && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.EMBER_METAL_CHESTPLATE.get())
+         && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.EMBER_METAL_LEGGINGS.get())
+         && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.EMBER_METAL_BOOTS.get());
+   }
+
+   public static boolean hasFullFrostSet() {
+      Player player = localPlayer();
+      return player != null
+         && player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.FROST_METAL_HELMET.get())
+         && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.FROST_METAL_CHESTPLATE.get())
+         && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.FROST_METAL_LEGGINGS.get())
+         && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.FROST_METAL_BOOTS.get());
+   }
+
+   public static boolean hasFullTranscendiumSet() {
+      Player player = localPlayer();
+      return player != null
+         && player.getItemBySlot(EquipmentSlot.HEAD).is((Item)ModItems.TRANSCENDIUM_HELMET.get())
+         && player.getItemBySlot(EquipmentSlot.CHEST).is((Item)ModItems.TRANSCENDIUM_CHESTPLATE.get())
+         && player.getItemBySlot(EquipmentSlot.LEGS).is((Item)ModItems.TRANSCENDIUM_LEGGINGS.get())
+         && player.getItemBySlot(EquipmentSlot.FEET).is((Item)ModItems.TRANSCENDIUM_BOOTS.get());
+   }
+
    public static boolean helmetNightVision() {
       return hasTranscendiumHelmet() && ClientAbilityState.nightVision();
    }

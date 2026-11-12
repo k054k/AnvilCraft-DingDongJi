@@ -1,0 +1,64 @@
+{
+  "parent": "dingdongji:dingdongji/durable_goods",
+  "criteria": {
+    "frost_helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:frost_metal_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "frost_chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:frost_metal_chestplate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "frost_leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:frost_metal_leggings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "frost_boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:frost_metal_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.frost_armor.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:frost_metal_helmet"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.frost_armor.title"
+    }
+  },
+  "requirements": [
+    ["frost_helmet"],
+    ["frost_chestplate"],
+    ["frost_leggings"],
+    ["frost_boots"]
+  ],
+  "sends_telemetry_event": true
+}

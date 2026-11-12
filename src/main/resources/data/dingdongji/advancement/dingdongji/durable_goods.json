@@ -1,0 +1,66 @@
+{
+  "parent": "dingdongji:dingdongji/root",
+  "criteria": {
+    "helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:royal_steel_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:royal_steel_chestplate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:royal_steel_leggings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:royal_steel_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.durable_goods.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:royal_steel_helmet"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.durable_goods.title"
+    }
+  },
+  "requirements": [
+    [
+      "helmet",
+      "chestplate",
+      "leggings",
+      "boots"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

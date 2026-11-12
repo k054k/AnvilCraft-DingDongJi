@@ -1,0 +1,128 @@
+{
+  "type": "anvilcraft:procedural_process",
+  "displayed_models": [
+    "dingdongji:block/wip_display/supercooled_frost_metal_wip_1",
+    "dingdongji:block/wip_display/supercooled_frost_metal_wip_2",
+    "dingdongji:block/wip_display/supercooled_frost_metal_wip_3",
+    "dingdongji:block/wip_display/supercooled_frost_metal_wip_4",
+    "dingdongji:block/wip_display/supercooled_frost_metal_wip_5"
+  ],
+  "icon": {
+    "count": 1,
+    "id": "dingdongji:supercooled_frost_metal_block"
+  },
+  "initial_block": {
+    "blocks": "anvilcraft:frost_metal_block"
+  },
+  "loop": 5,
+  "multiple_loop_first_step": {
+    "content": {
+      "type": "anvilcraft:block_processing",
+      "inputs": [
+        {
+          "blocks": "anvilcraft:wip_block"
+        },
+        {
+          "blocks": "dingdongji:anchored_beacon"
+        }
+      ],
+      "result": {
+        "block": "anvilcraft:wip_block"
+      }
+    },
+    "index": 0
+  },
+  "result_block": {
+    "block": "dingdongji:supercooled_frost_metal_block",
+    "nbt": {
+      "duration": 1200
+    }
+  },
+  "steps": [
+    {
+      "content": {
+        "type": "anvilcraft:block_processing",
+        "inputs": [
+          {
+            "blocks": "anvilcraft:frost_metal_block"
+          },
+          {
+            "blocks": "dingdongji:anchored_beacon"
+          }
+        ],
+        "result": {
+          "block": "anvilcraft:wip_block"
+        }
+      },
+      "index": 0
+    },
+    {
+      "content": {
+        "type": "anvilcraft:item_inject",
+        "block_ingredient": {
+          "blocks": "anvilcraft:wip_block"
+        },
+        "block_result": {
+          "block": "anvilcraft:wip_block"
+        },
+        "ingredients": [
+          {
+            "items": "anvilcraft:sapphire"
+          }
+        ]
+      },
+      "index": 1
+    },
+    {
+      "content": {
+        "type": "anvilcraft:block_compress",
+        "inputs": [
+          {
+            "blocks": "minecraft:blue_ice"
+          },
+          {
+            "blocks": "anvilcraft:wip_block"
+          }
+        ],
+        "result": {
+          "block": "anvilcraft:wip_block"
+        }
+      },
+      "index": 2
+    },
+    {
+      "content": {
+        "type": "anvilcraft:item_inject",
+        "block_ingredient": {
+          "blocks": "anvilcraft:wip_block"
+        },
+        "block_result": {
+          "block": "anvilcraft:wip_block"
+        },
+        "ingredients": [
+          {
+            "items": "anvilcraft:frost_metal_ingot"
+          }
+        ]
+      },
+      "index": 3
+    },
+    {
+      "content": {
+        "type": "anvilcraft:block_processing",
+        "inputs": [
+          {
+            "blocks": "anvilcraft:wip_block"
+          },
+          {
+            "blocks": "anvilcraft:frost_grindstone"
+          }
+        ],
+        "result": {
+          "block": "anvilcraft:wip_block"
+        }
+      },
+      "index": 4
+    }
+  ]
+}

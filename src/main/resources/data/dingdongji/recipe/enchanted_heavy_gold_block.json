@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GGG",
+    "GGG",
+    "GGG"
+  ],
+  "key": {
+    "G": {
+      "item": "anvilcraft:enchanted_gold_block"
+    }
+  },
+  "result": {
+    "id": "dingdongji:enchanted_heavy_gold_block"
+  }
+}

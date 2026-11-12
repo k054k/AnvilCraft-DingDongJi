@@ -17,7 +17,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(
-   targets = {"dev.dubhe.anvilcraft.inventory.EmberSmithingMenu"}
+   targets = {"dev.dubhe.anvilcraft.inventory.EmberSmithingMenu"},
+   remap = false
 )
 public abstract class EmberSmithingMenuMixin {
    @Redirect(
@@ -42,17 +43,8 @@ public abstract class EmberSmithingMenuMixin {
       return original;
    }
 
-   @Inject(
-      method = {"isUsableTemplate"},
-      at = {@At("HEAD")},
-      cancellable = true,
-      remap = false
-   )
-   private void ddj$usableTemplate(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-      if (ModItems.isCreateTemplate(stack)) {
-         cir.setReturnValue(true);
-      }
-   }
+   // isUsableTemplate 的万用模板放行由多目标 MixinSmithingTemplateUsable
+   // （Royal/Ember/Frost 三菜单）统一处理，此处不再重复注入。
 
    @Inject(
       method = {"getInputSize"},

@@ -127,6 +127,14 @@ public class JiAnvilMenu extends AnvilMenu {
       long repairCost = 0L;
       int repairCostT = 0;
       if (!inputLeft.isEmpty()) {
+         // 附魔物品已存在诅咒时无法继续附魔（修理/合并/注入附魔全部禁止）；
+         // 右槽为空的纯改名操作不受影响
+         if (!inputRight.isEmpty() && hasCurse(inputLeft)) {
+            this.resultSlots.setItem(0, ItemStack.EMPTY);
+            this.costData().set(0);
+            return;
+         }
+
          ItemStack inputLeftCopy = inputLeft.copy();
          Mutable enchantmentsOnLeft = new Mutable(EnchantmentHelper.getEnchantmentsForCrafting(inputLeftCopy));
          repairCost += (long)((Integer)inputLeft.getOrDefault(DataComponents.REPAIR_COST, 0)).intValue()
@@ -352,5 +360,20 @@ public class JiAnvilMenu extends AnvilMenu {
          this.resultSlots.setItem(0, ItemStack.EMPTY);
          this.costData().set(0);
       }
+   }
+
+   /** 物品是否带有任意诅咒附魔（附魔书的诅咒存在 STORED_ENCHANTMENTS，需一并检查）。 */
+   private static boolean hasCurse(ItemStack stack) {
+      return hasCurseIn(stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY))
+         || hasCurseIn(stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY));
+   }
+
+   private static boolean hasCurseIn(ItemEnchantments enchantments) {
+      for (Holder<Enchantment> holder : enchantments.keySet()) {
+         if (holder.is(EnchantmentTags.CURSE)) {
+            return true;
+         }
+      }
+      return false;
    }
 }

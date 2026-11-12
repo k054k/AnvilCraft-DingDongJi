@@ -47,11 +47,21 @@ public final class AfterimageManager {
    private static final int CAPTURE_INTERVAL = 2;
    private static final int LIFETIME = 10;
    private static final double MAX_DISTANCE = 96.0;
-   private static final int TINT_R = 170;
-   private static final int TINT_G = 80;
-   private static final int TINT_B = 255;
+   /** 幻灵色：取模组既定幻灵相位蓝 0x7187F5（偏蓝，非紫色）。 */
+   private static final int TINT_R = 113;
+   private static final int TINT_G = 135;
+   private static final int TINT_B = 245;
+   /** 幻影状态本体渲染透明度：比飞行虚影略高（本体需要持续可见）。 */
+   private static final int PHANTOM_SKIN_ALPHA = 100;
+   private static final int PHANTOM_GEAR_ALPHA = 160;
    private static List<AfterimageManager.Snapshot> SNAPSHOTS = new ArrayList<>();
    private static boolean renderingAfterimage;
+   /** 染色渲染中（残影拖尾）：幻灵盔甲层与发光层回落到可被换类型染色的原版路径。
+    *  替身重绘只置 renderingAfterimage（事件递归守卫），不置本标志——替身要保持
+    *  幻灵盔甲自己的半透明双 pass 与发光层，与玩家外观一致。 */
+   private static boolean tintingRender;
+   /** 幻影状态玩家"本体"双 pass 渲染中（区别于超速飞行残影）。 */
+   private static boolean phantomBody;
    private static long lastCaptureMs;
    private static ClientLevel trackedLevel;
    private static Field walkSpeedOldField;
@@ -68,6 +78,36 @@ public final class AfterimageManager {
 
    public static boolean isRenderingAfterimage() {
       return renderingAfterimage;
+   }
+
+   /** 幻影本体渲染期间同样置位：让幻灵盔甲层放弃独立双 pass、回落到可被染色换类型的原版路径。 */
+   public static void setRenderingAfterimage(boolean value) {
+      renderingAfterimage = value;
+   }
+
+   public static boolean isTintingRender() {
+      return tintingRender;
+   }
+
+   public static boolean isPhantomBody() {
+      return phantomBody;
+   }
+
+   /** 幻影本体双 pass 渲染开关：置位时幻灵盔甲层对幻灵贴图直接取消
+    * （幻影玩家身上不再渲染幻灵盔甲）。 */
+   public static void setPhantomBody(boolean value) {
+      phantomBody = value;
+   }
+
+   /** 幻影本体单 pass：实体/手持方块几何改走原版半透明渲染类型
+    *  （entityTranslucent/translucent：写深度 + 面剔除，单 pass 不透背面、
+    *  无双层几何闪烁）并染幻灵色。皮肤优先使用 {@code mergedSkin}
+    *  （第二图层已烘焙进第一图层的单层贴图）；合并贴图尚未就绪时回退为
+    *  原贴图。其余几何（glint 等）丢弃。 */
+   public static MultiBufferSource phantomBodyTint(MultiBufferSource delegate, ResourceLocation skinTexture,
+                                                   ResourceLocation mergedSkin) {
+      return new PhantomTintSource(delegate, skinTexture, mergedSkin,
+         TINT_R, TINT_G, TINT_B, PHANTOM_SKIN_ALPHA, PHANTOM_GEAR_ALPHA);
    }
 
    @SubscribeEvent
@@ -221,6 +261,7 @@ public final class AfterimageManager {
          boolean[] savedPartVisibility = null;
          int fullBright = 15728880;
          renderingAfterimage = true;
+         tintingRender = true;
 
          try {
             // 护甲覆盖处只保留护甲虚影、不渲染皮肤模型，避免皮肤透过护甲
@@ -233,6 +274,7 @@ public final class AfterimageManager {
             renderer.render(player, snap.yRot, 0.0F, pose, buffers, fullBright);
          } finally {
             renderingAfterimage = false;
+            tintingRender = false;
             if (skinModel != null) {
                restoreSkinVisibility(skinModel, savedPartVisibility);
             }
@@ -319,7 +361,8 @@ public final class AfterimageManager {
       }
    }
 
-   private static Object[] freezeWalkAnimation(Player player, float limbPos, float limbSpeed) {
+   /** 冻结走路动画到指定帧（残影/替身重绘复用）。返回保存的旧状态。 */
+   public static Object[] freezeWalkAnimation(Player player, float limbPos, float limbSpeed) {
       initWalkReflection();
       if (walkReflectionFailed) {
          return null;
@@ -338,7 +381,8 @@ public final class AfterimageManager {
       }
    }
 
-   private static void restoreWalkAnimation(Player player, Object[] saved) {
+   /** 恢复 {@link #freezeWalkAnimation} 保存的走路动画状态。 */
+   public static void restoreWalkAnimation(Player player, Object[] saved) {
       if (saved != null && !walkReflectionFailed) {
          try {
             Object state = player.walkAnimation;
@@ -388,7 +432,7 @@ public final class AfterimageManager {
          // culling enabled — only front faces of both skin and armor draw,
          // so the armor's front half never has the skin's front half bleed
          // through on the same side. This is the same trick
-         // MixinHumanoidArmorLayerRenderType uses for the spectral suit,
+         // HumanoidArmorLayerRenderTypeMixin uses for the spectral suit,
          // applied here to the full player+armor pipeline.
          .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
          .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE);
@@ -505,6 +549,77 @@ public final class AfterimageManager {
          return new AfterimageManager.TintVertexConsumer(this.delegate.getBuffer(out), this.r, this.g, this.b, alpha);
       }
    }
+
+   /** 幻影本体单 pass：实体/手持方块几何 → 原版半透明渲染类型 + 幻灵色染色。
+    *  entityTranslucent/translucent 写深度且开启面剔除：背面被剔除不透视，
+    *  同一几何只画一次无双层竞争，从根上消除双 pass 的贴图重叠闪烁。
+    *  皮肤用合并后的单层贴图（mergedSkin），配合第二图层几何隐藏实现真正单 pass。 */
+   private static final class PhantomTintSource implements MultiBufferSource {
+      private final MultiBufferSource delegate;
+      private final ResourceLocation skinTexture;
+      private final ResourceLocation mergedSkin;
+      private final int r;
+      private final int g;
+      private final int b;
+      private final int skinAlpha;
+      private final int gearAlpha;
+
+      PhantomTintSource(MultiBufferSource delegate, ResourceLocation skinTexture, ResourceLocation mergedSkin,
+                        int r, int g, int b, int skinAlpha, int gearAlpha) {
+         this.delegate = delegate;
+         this.skinTexture = skinTexture;
+         this.mergedSkin = mergedSkin;
+         this.r = r;
+         this.g = g;
+         this.b = b;
+         this.skinAlpha = skinAlpha;
+         this.gearAlpha = gearAlpha;
+      }
+
+      public VertexConsumer getBuffer(RenderType type) {
+         if (type.format() == DefaultVertexFormat.NEW_ENTITY) {
+            ResourceLocation tex = AfterimageManager.textureOf(type);
+            if (tex != null) {
+               boolean skin = tex.equals(this.skinTexture);
+               ResourceLocation outTex = skin && this.mergedSkin != null ? this.mergedSkin : tex;
+               RenderType out = RenderType.entityTranslucent(outTex);
+               int alpha = skin ? this.skinAlpha : this.gearAlpha;
+               return new AfterimageManager.TintVertexConsumer(this.delegate.getBuffer(out), this.r, this.g, this.b, alpha);
+            }
+         } else if (type.format() == DefaultVertexFormat.BLOCK) {
+            return new AfterimageManager.TintVertexConsumer(
+               this.delegate.getBuffer(RenderType.translucent()), this.r, this.g, this.b, this.gearAlpha);
+         }
+         return AfterimageManager.NOOP_CONSUMER;
+      }
+   }
+
+   /** 吞掉一切顶点的空 consumer：幻影中不渲染的层（glint、粒子线条等）使用。 */
+   private static final VertexConsumer NOOP_CONSUMER = new VertexConsumer() {
+      public VertexConsumer addVertex(float x, float y, float z) {
+         return this;
+      }
+
+      public VertexConsumer setColor(int red, int green, int blue, int alpha) {
+         return this;
+      }
+
+      public VertexConsumer setUv(float u, float v) {
+         return this;
+      }
+
+      public VertexConsumer setUv1(int u, int v) {
+         return this;
+      }
+
+      public VertexConsumer setUv2(int u, int v) {
+         return this;
+      }
+
+      public VertexConsumer setNormal(float x, float y, float z) {
+         return this;
+      }
+   };
 
    private static final class TintVertexConsumer implements VertexConsumer {
       private final VertexConsumer delegate;

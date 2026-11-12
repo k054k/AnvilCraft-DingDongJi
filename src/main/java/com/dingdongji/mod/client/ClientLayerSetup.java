@@ -1,8 +1,8 @@
 package com.dingdongji.mod.client;
 
 import com.dingdongji.mod.client.layer.EmissiveArmorLayer;
-import com.dingdongji.mod.mixin.AccessorHumanoidArmorLayer;
-import com.dingdongji.mod.mixin.AccessorLivingEntityRenderer;
+import com.dingdongji.mod.client.accessor.HumanoidArmorLayerAccess;
+import com.dingdongji.mod.client.accessor.LivingEntityRendererAccess;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -42,10 +42,10 @@ public final class ClientLayerSetup {
    private static void attach(EntityRenderer<?> renderer) {
       if (renderer instanceof LivingEntityRenderer livingRenderer) {
          if (livingRenderer.getModel() instanceof HumanoidModel) {
-            for (RenderLayer<?, ?> layer : ((AccessorLivingEntityRenderer)livingRenderer).ddj$getLayers()) {
+            for (RenderLayer<?, ?> layer : ((LivingEntityRendererAccess)livingRenderer).ddj$getLayers()) {
                if (layer instanceof HumanoidArmorLayer armorLayer) {
-                  HumanoidModel<?> inner = ((AccessorHumanoidArmorLayer)armorLayer).ddj$getInnerModel();
-                  HumanoidModel<?> outer = ((AccessorHumanoidArmorLayer)armorLayer).ddj$getOuterModel();
+                  HumanoidModel<?> inner = ((HumanoidArmorLayerAccess)armorLayer).ddj$getInnerModel();
+                  HumanoidModel<?> outer = ((HumanoidArmorLayerAccess)armorLayer).ddj$getOuterModel();
                   livingRenderer.addLayer(new EmissiveArmorLayer(livingRenderer, inner, outer));
                   break;
                }

@@ -4,7 +4,7 @@
     "item": "dingdongji:ji_upgrade"
   },
   "base": {
-    "item": "minecraft:anvil"
+    "item": "anvilcraft:ember_anvil"
   },
   "addition": {
     "item": "dingdongji:keji_block"

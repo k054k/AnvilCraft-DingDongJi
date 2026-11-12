@@ -22,7 +22,7 @@ import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 /**
  * 监听物品 ItemEntity 进入末地维度（玩家把套装部位丢进末地门，传送完成后
  * 在末地生成 ItemEntity 时触发）。按几率通过 {@link ItemPortalConversionRecipe}
- * 转换为对应的幻灵装备；未命中部分转为 AnvilCraft 的 end_dust 或原版末地石。
+ * 转换为对应的幻灵装备；未命中部分转为 AnvilCraft 的末地尘。
  * <p>
  * 配方驱动：不再硬编码 CONVERSION_MAP，所有转换规则由数据包中
  * {@code dingdongji:item_portal_conversion} 类型 JSON 配方定义，随资源包自动生效。
@@ -37,7 +37,7 @@ public final class ModEndGatewayHandler {
    private ModEndGatewayHandler() {
    }
 
-   /** 末地尘：优先 AnvilCraft 的 end_dust，未安装时退化为原版末地石。 */
+   /** 末地尘：AnvilCraft 的 end_dust，未安装时退化为原版末地石。 */
    private static Item dustItem() {
       if (cachedDustItem == null) {
          Item item = (Item)BuiltInRegistries.ITEM.get(ResourceLocation.parse("anvilcraft:end_dust"));

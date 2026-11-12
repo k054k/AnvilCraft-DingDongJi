@@ -1,0 +1,97 @@
+{
+  "parent": "dingdongji:dingdongji/ji_ingot",
+  "criteria": {
+    "ji_anvil": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_anvil"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ji_sword": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_sword"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ji_pickaxe": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_pickaxe"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ji_helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ji_chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_chestplate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ji_leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_leggings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "ji_boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.all_ji.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:keji_block"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.all_ji.title"
+    }
+  },
+  "requirements": [
+    ["ji_anvil"],
+    ["ji_sword"],
+    ["ji_pickaxe"],
+    ["ji_helmet"],
+    ["ji_chestplate"],
+    ["ji_leggings"],
+    ["ji_boots"]
+  ],
+  "sends_telemetry_event": true
+}

@@ -2,6 +2,11 @@
   "replace": false,
   "values": [
     "dingdongji:keji_block",
-    "dingdongji:ji_anvil"
+    "dingdongji:heavy_gold_block",
+    "dingdongji:cursed_heavy_gold_block",
+    "dingdongji:enchanted_heavy_gold_block",
+    "dingdongji:supercooled_frost_metal_block",
+    "dingdongji:ji_anvil",
+    "dingdongji:anchored_beacon"
   ]
 }

@@ -10,7 +10,7 @@ import net.minecraft.world.InteractionHand;
 
 /**
  * 手持功能盔甲经轮盘直接设置功能状态：
- * state 含义按物品而定（布尔功能 0=关 1=开；头盔适应 0-5；中子屏罩 0-3；蹈虚 1/2）。
+ * state 含义按物品而定（布尔功能 0=关 1=开；头盔适应 0-5；中子力场 0-3；蹈虚 1/2）。
  */
 public record ArmorFunctionSelectPacket(InteractionHand hand, int state) implements CustomPacketPayload {
    public static final Type<ArmorFunctionSelectPacket> TYPE = new Type(ResourceLocation.parse("dingdongji:armor_function_select"));

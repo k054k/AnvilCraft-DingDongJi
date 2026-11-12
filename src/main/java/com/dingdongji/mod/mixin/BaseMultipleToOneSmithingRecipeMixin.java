@@ -11,7 +11,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(
-   targets = {"dev.dubhe.anvilcraft.recipe.multiple.BaseMultipleToOneSmithingRecipe"}
+   targets = {"dev.dubhe.anvilcraft.recipe.multiple.BaseMultipleToOneSmithingRecipe"},
+   remap = false
 )
 public abstract class BaseMultipleToOneSmithingRecipeMixin {
    @Inject(
@@ -20,7 +21,7 @@ public abstract class BaseMultipleToOneSmithingRecipeMixin {
       cancellable = true,
       remap = false
    )
-   private void dingdongji$isTemplateIngredient(ItemStack template, CallbackInfoReturnable<Boolean> cir) {
+   private void ddj$isTemplateIngredient(ItemStack template, CallbackInfoReturnable<Boolean> cir) {
       if (ModItems.isCreateTemplate(template)) {
          CreateTemplateMode mode = (CreateTemplateMode)template.get((DataComponentType)ModComponents.CREATE_TEMPLATE_MODE.get());
          if (mode == null) {

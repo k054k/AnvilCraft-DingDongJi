@@ -1,7 +1,7 @@
 package com.dingdongji.mod.item.template;
 
-import com.dingdongji.mod.client.ClientKeyNames;
 import com.dingdongji.mod.item.ModComponents;
+import com.dingdongji.mod.platform.ClientViews;
 import com.dingdongji.mod.item.component.CreateTemplateMode;
 import dev.dubhe.anvilcraft.inventory.TranscendenceSmithingMenu;
 import java.util.List;
@@ -39,7 +39,7 @@ public class CreateTemplateItem extends Item {
       ItemStack stack = player.getItemInHand(hand);
       if (!level.isClientSide) {
          // 手持万用模板右键直接打开超限锻造台面板：access 传 NULL（无方块位置），
-         // stillValid/removed 由 MixinTranscendenceSmithingMenu 针对 NULL 特判，
+         // stillValid/removed 由 TranscendenceSmithingMenuMixin 针对 NULL 特判，
          // 保证面板可用且关闭时输入栏物品返还玩家。
          player.openMenu(
             new SimpleMenuProvider(
@@ -62,8 +62,8 @@ public class CreateTemplateItem extends Item {
             .withStyle(style -> style.withColor(TextColor.fromRgb(0x7A1AFF)))
             .append(Component.literal(mode.getDescription()).withStyle(style -> style.withColor(TextColor.fromRgb(12353791))))
       );
-      // 切换键显示名跟随本体"切换工具模式"键位，appendHoverText 仅客户端执行，安全
-      tooltip.add(Component.translatable("tooltip.dingdongji.create_template.switch", ClientKeyNames.switchToolModeKey()).withStyle(ChatFormatting.GRAY));
+      // 切换键显示名跟随本体"切换工具模式"键位，appendHoverText 仅客户端执行
+      tooltip.add(Component.translatable("tooltip.dingdongji.create_template.switch", ClientViews.get().switchToolModeKey()).withStyle(ChatFormatting.GRAY));
       tooltip.add(Component.translatable("screen.dingdongji.create_template").withStyle(ChatFormatting.GRAY));
       tooltip.add(Component.empty());
       tooltip.add(Component.translatable("tooltip.dingdongji.create_template.applies").withStyle(ChatFormatting.GRAY));

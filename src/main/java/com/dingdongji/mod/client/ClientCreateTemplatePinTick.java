@@ -1,8 +1,13 @@
 package com.dingdongji.mod.client;
 
+import com.dingdongji.mod.KryptonMod;
 import com.dingdongji.mod.util.CreateTemplatePinOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
@@ -11,10 +16,12 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
  * change is visible on the next frame without waiting for a server sync and
  * regardless of the integrated-server pause while the config screen is open.
  */
+@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.GAME, modid = KryptonMod.MODID)
 public final class ClientCreateTemplatePinTick {
    private ClientCreateTemplatePinTick() {
    }
 
+   @SubscribeEvent
    public static void onClientTick(ClientTickEvent.Post event) {
       Minecraft minecraft = Minecraft.getInstance();
       Object menu = minecraft.screen instanceof AbstractContainerScreen<?> screen ? screen.getMenu() : null;

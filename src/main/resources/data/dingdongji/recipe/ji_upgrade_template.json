@@ -1,16 +1,13 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "GKG",
-    "KNK",
-    "GKG"
+    "III",
+    "INI",
+    "III"
   ],
   "key": {
-    "G": {
-      "item": "dingdongji:keji_block"
-    },
-    "K": {
-      "item": "minecraft:gold_block"
+    "I": {
+      "item": "dingdongji:ji_ingot"
     },
     "N": {
       "item": "minecraft:netherite_upgrade_smithing_template"

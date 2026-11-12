@@ -65,22 +65,38 @@ public class ModItems {
    public static final DeferredItem<BlockItem> KEJI_BLOCK = ITEMS.register(
       "keji_block", () -> new BlockItem((Block)ModBlocks.KEJI_BLOCK.get(), new Properties())
    );
+   public static final DeferredItem<BlockItem> HEAVY_GOLD_BLOCK = ITEMS.register(
+      "heavy_gold_block", () -> new BlockItem((Block)ModBlocks.HEAVY_GOLD_BLOCK.get(), new Properties())
+   );
+   public static final DeferredItem<CursedHeavyGoldBlockItem> CURSED_HEAVY_GOLD_BLOCK = ITEMS.register(
+      "cursed_heavy_gold_block", () -> new CursedHeavyGoldBlockItem((Block)ModBlocks.CURSED_HEAVY_GOLD_BLOCK.get(), new Properties())
+   );
+   public static final DeferredItem<EnchantedHeavyGoldBlockItem> ENCHANTED_HEAVY_GOLD_BLOCK = ITEMS.register(
+      "enchanted_heavy_gold_block", () -> new EnchantedHeavyGoldBlockItem((Block)ModBlocks.ENCHANTED_HEAVY_GOLD_BLOCK.get(), new Properties())
+   );
+   public static final DeferredItem<SupercooledFrostMetalBlockItem> SUPERCOOLED_FROST_METAL_BLOCK = ITEMS.register(
+      "supercooled_frost_metal_block", () -> new SupercooledFrostMetalBlockItem((Block)ModBlocks.SUPERCOOLED_FROST_METAL_BLOCK.get(), new Properties())
+   );
+   public static final DeferredItem<BlockItem> ANCHORED_BEACON = ITEMS.register(
+      "anchored_beacon", () -> new BlockItem((Block)ModBlocks.ANCHORED_BEACON.get(), new Properties().rarity(Rarity.RARE))
+   );
+   public static final DeferredItem<Item> JI_INGOT = ITEMS.register("ji_ingot", () -> new Item(new Properties()));
    public static final DeferredItem<Item> JI_UPGRADE = ITEMS.register("ji_upgrade", () -> new JiUpgradeTemplateItem(new Properties()));
    public static final Tier JI_TOOL_TIER = new Tier() {
       public int getUses() {
-         return 1561;
+         return 250;
       }
 
       public float getSpeed() {
-         return 14.0F;
+         return 6.0F;
       }
 
       public float getAttackDamageBonus() {
-         return 0.0F;
+         return 2.0F;
       }
 
       public TagKey<Block> getIncorrectBlocksForDrops() {
-         return BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
+         return BlockTags.INCORRECT_FOR_IRON_TOOL;
       }
 
       public int getEnchantmentValue() {
@@ -88,7 +104,7 @@ public class ModItems {
       }
 
       public Ingredient getRepairIngredient() {
-         return Ingredient.of(new ItemLike[]{net.minecraft.world.item.Items.GOLD_INGOT});
+         return Ingredient.of(new ItemLike[]{JI_INGOT.get()});
       }
    };
    public static final DeferredItem<SwordItem> JI_SWORD = ITEMS.register(
@@ -97,20 +113,17 @@ public class ModItems {
    public static final DeferredItem<PickaxeItem> JI_PICKAXE = ITEMS.register(
       "ji_pickaxe", () -> new PickaxeItem(JI_TOOL_TIER, new Properties().attributes(PickaxeItem.createAttributes(JI_TOOL_TIER, 1.0F, -2.8F)))
    );
-   private static final int DURABILITY_JI = 1561;
-   private static final int VANILLA_DIAMOND = 33;
-   private static final int VANILLA_NETHERITE = 37;
    public static final DeferredItem<ArmorItem> JI_HELMET = ITEMS.register(
-      "ji_helmet", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.HELMET, new Properties().durability(1561))
+      "ji_helmet", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.HELMET, new Properties().durability(165))
    );
    public static final DeferredItem<ArmorItem> JI_CHESTPLATE = ITEMS.register(
-      "ji_chestplate", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.CHESTPLATE, new Properties().durability(1561))
+      "ji_chestplate", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.CHESTPLATE, new Properties().durability(240))
    );
    public static final DeferredItem<ArmorItem> JI_LEGGINGS = ITEMS.register(
-      "ji_leggings", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.LEGGINGS, new Properties().durability(1561))
+      "ji_leggings", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.LEGGINGS, new Properties().durability(225))
    );
    public static final DeferredItem<ArmorItem> JI_BOOTS = ITEMS.register(
-      "ji_boots", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.BOOTS, new Properties().durability(1561))
+      "ji_boots", () -> new ArmorItem(ModArmorMaterials.holder(ModArmorMaterials.JI), Type.BOOTS, new Properties().durability(195))
    );
    public static final DeferredItem<ArmorItem> ROYAL_STEEL_HELMET = ITEMS.register(
       "royal_steel_helmet",
@@ -146,7 +159,6 @@ public class ModItems {
             new Properties()
                .durability(vanillaArmor(Type.HELMET, 37))
                .component((DataComponentType)ModComponents.MEANINGLESS.get(), MeaninglessComponent.DEFAULT)
-               .component((DataComponentType)ModComponents.FROST_WARD.get(), FrostWardComponent.INSTANCE)
          )
    );
    public static final DeferredItem<ArmorItem> FROST_METAL_CHESTPLATE = ITEMS.register(
@@ -205,7 +217,6 @@ public class ModItems {
             new Properties()
                .durability(vanillaArmor(Type.LEGGINGS, 37))
                .fireResistant()
-               .component((DataComponentType)ModComponents.EMBER_REGEN.get(), EmberRegenComponent.INSTANCE)
          )
    );
    public static final DeferredItem<ArmorItem> EMBER_METAL_BOOTS = ITEMS.register(
@@ -246,7 +257,6 @@ public class ModItems {
             unbreakableArmor()
                .fireResistant()
                .rarity(Rarity.EPIC)
-               .component((DataComponentType)ModComponents.NEUTRON_BARRIER.get(), NeutronBarrierComponent.INSTANCE)
          )
    );
    public static final DeferredItem<ArmorItem> TRANSCENDIUM_BOOTS = ITEMS.register(
@@ -272,6 +282,11 @@ public class ModItems {
    public static final DeferredItem<Item> SMALL_POUCH = ITEMS.register("small_pouch", () -> new PouchItem(new Properties()));
    /** 深口袋：小口袋中心放小口袋合成，给护腿 +12 栏位。 */
    public static final DeferredItem<Item> BIG_POUCH = ITEMS.register("big_pouch", () -> new PouchItem(new Properties()));
+   /** 蹲起式发电器：纯工具（无耐久/护甲），穿在护腿位做蹲起动作发电，功率随蹲起频率提升（封顶120kW），逻辑见 SquatGeneratorManager。 */
+   public static final DeferredItem<ArmorItem> SQUAT_GENERATOR_LEGGINGS = ITEMS.register(
+      "squat_generator_leggings",
+      () -> new SquatGeneratorLeggingsItem(ModArmorMaterials.holder(ModArmorMaterials.SQUAT_GENERATOR), Type.LEGGINGS, new Properties().stacksTo(1))
+   );
 
    public static boolean isCreateTemplate(ItemStack stack) {
       return !stack.isEmpty() && stack.is((Item)CREATE_TEMPLATE.get());
@@ -311,19 +326,18 @@ public class ModItems {
    private static Properties emberMetalChestProperties() {
       return new Properties()
          .durability(vanillaArmor(Type.CHESTPLATE, 37))
-         .fireResistant()
-         .component((DataComponentType)ModComponents.BARRIER_I.get(), BarrierIComponent.INSTANCE);
+         .fireResistant();
    }
 
    private static Properties transcendiumChestProperties() {
       return unbreakableArmor()
          .fireResistant()
          .rarity(Rarity.EPIC)
-         .component((DataComponentType)ModComponents.BARRIER_II.get(), BarrierIIComponent.INSTANCE);
+         .component((DataComponentType)ModComponents.NEUTRON_BARRIER.get(), NeutronBarrierComponent.INSTANCE);
    }
 
    private static ItemAttributeModifiers createJiSwordAttributes() {
-      ItemAttributeModifiers base = SwordItem.createAttributes(JI_TOOL_TIER, 6, -2.4F);
+      ItemAttributeModifiers base = SwordItem.createAttributes(JI_TOOL_TIER, 3, -2.4F);
       Builder builder = ItemAttributeModifiers.builder();
       base.modifiers().forEach(entry -> builder.add(entry.attribute(), entry.modifier(), entry.slot()));
       builder.add(

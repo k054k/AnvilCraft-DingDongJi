@@ -1,0 +1,27 @@
+{
+  "criteria": {
+    "join": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/block/gold_block.png",
+    "description": {
+      "translate": "advancements.dingdongji.root.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:ji_anvil"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.dingdongji.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "join"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

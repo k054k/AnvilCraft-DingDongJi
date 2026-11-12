@@ -1,6 +1,6 @@
 package com.dingdongji.mod.client;
 
-import com.dingdongji.mod.input.ModKeyBindings;
+import com.dingdongji.mod.client.input.ModKeyBindings;
 
 /**
  * 按键显示名的安全访问代理。
@@ -24,8 +24,8 @@ public final class ClientKeyNames {
       return ModKeyBindings.NEUTRON_BARRIER_KEY.getTranslatedKeyMessage().getString();
    }
 
-   public static String phaseShiftKey() {
-      return ModKeyBindings.PHASE_SHIFT_KEY.getTranslatedKeyMessage().getString();
+   public static String fullSetToggleKey() {
+      return ModKeyBindings.FULL_SET_TOGGLE_KEY.getTranslatedKeyMessage().getString();
    }
 
    /** 铁砧本体"切换工具模式"键（默认左Alt），盔甲功能轮盘的触发键。 */

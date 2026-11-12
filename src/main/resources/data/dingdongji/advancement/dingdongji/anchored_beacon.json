@@ -1,0 +1,26 @@
+{
+  "parent": "dingdongji:dingdongji/root",
+  "criteria": {
+    "convert_beacon": {
+      "trigger": "anvilcraft:convert_beacon"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.anchored_beacon.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:anchored_beacon"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.anchored_beacon.title"
+    }
+  },
+  "requirements": [
+    [
+      "convert_beacon"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

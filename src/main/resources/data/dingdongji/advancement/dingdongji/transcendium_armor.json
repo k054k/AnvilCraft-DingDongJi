@@ -1,0 +1,65 @@
+{
+  "parent": "dingdongji:dingdongji/frost_armor",
+  "criteria": {
+    "transcendium_helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:transcendium_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "transcendium_chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:transcendium_chestplate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "transcendium_leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:transcendium_leggings"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "transcendium_boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:transcendium_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.transcendium_armor.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:transcendium_helmet"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.transcendium_armor.title"
+    }
+  },
+  "requirements": [
+    ["transcendium_helmet"],
+    ["transcendium_chestplate"],
+    ["transcendium_leggings"],
+    ["transcendium_boots"]
+  ],
+  "sends_telemetry_event": true
+}

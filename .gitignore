@@ -33,6 +33,9 @@ libs/*.jar
 !gradle/wrapper/gradle-wrapper.jar
 !libs/.gitkeep
 
+# Mixin annotation processor 产物（MDG + 官方映射下运行期不需要，勿入库）
+*.refmap.json
+
 # JVM crash logs
 hs_err_pid*
 replay_pid*

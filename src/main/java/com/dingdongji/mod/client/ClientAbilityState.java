@@ -1,5 +1,6 @@
 package com.dingdongji.mod.client;
 
+import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
@@ -8,6 +9,10 @@ public final class ClientAbilityState {
    public static boolean frostSlide;
    public static boolean phaseVertical;
    public static boolean transcendiumPhase;
+   /** 本地玩家自己的幻影开关（仅同步本人）。 */
+   public static boolean phantom;
+   /** 其他玩家的幻影状态（服务端广播）：渲染幻灵色半透明本体。 */
+   private static final java.util.Set<UUID> REMOTE_PHANTOM = new java.util.HashSet<>();
    public static int helmetMode = 5;
 
    private ClientAbilityState() {
@@ -37,22 +42,18 @@ public final class ClientAbilityState {
       return mc.player == player && transcendiumPhase;
    }
 
-   /**
-    * Controlled climb/descent speed for the vertical phase (client author side):
-    * space ascends, shift descends, neither hovers. Gravity is consumed by the
-    * collide mixin, so this value becomes the raw Y delta.
-    */
-   public static double phaseVerticalVelocity() {
+   public static boolean isPhantom(Player player) {
       Minecraft mc = Minecraft.getInstance();
-      if (mc.player == null) {
-         return 0.0;
-      }
+      return mc.player == player ? phantom : REMOTE_PHANTOM.contains(player.getUUID());
+   }
 
-      if (mc.options.keyJump.isDown()) {
-         return 0.2;
+   /** 接收服务端广播的其他玩家幻影状态。 */
+   public static void applyRemotePhantom(UUID playerId, boolean phantomState) {
+      if (phantomState) {
+         REMOTE_PHANTOM.add(playerId);
+      } else {
+         REMOTE_PHANTOM.remove(playerId);
       }
-
-      return mc.options.keyShift.isDown() ? -0.15 : 0.0;
    }
 
    public static boolean isLocalNightVision(Player player) {
@@ -60,11 +61,12 @@ public final class ClientAbilityState {
       return mc.player == player && nightVision();
    }
 
-   public static void applySync(boolean lavaWalkerEnabled, boolean frostSlideEnabled, int mode, boolean phaseVerticalEnabled, boolean transcendiumPhaseEnabled) {
+   public static void applySync(boolean lavaWalkerEnabled, boolean frostSlideEnabled, int mode, boolean phaseVerticalEnabled, boolean transcendiumPhaseEnabled, boolean phantomEnabled) {
       lavaWalker = lavaWalkerEnabled;
       frostSlide = frostSlideEnabled;
       helmetMode = mode;
       phaseVertical = phaseVerticalEnabled;
       transcendiumPhase = transcendiumPhaseEnabled;
+      phantom = phantomEnabled;
    }
 }

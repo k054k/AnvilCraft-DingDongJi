@@ -4,7 +4,7 @@
     "item": "minecraft:golden_helmet"
   },
   "addition": {
-    "item": "dingdongji:keji_block"
+    "item": "dingdongji:ji_ingot"
   },
   "template": {
     "item": "dingdongji:ji_upgrade"

@@ -1,0 +1,5 @@
+{
+  "type": "dingdongji:anchored_mob_transform",
+  "inputs": ["minecraft:ravager"],
+  "result": "minecraft:cow"
+}

@@ -1,5 +1,6 @@
 package com.dingdongji.mod.init;
 
+import com.dingdongji.mod.recipe.AnchoredMobTransformRecipe;
 import com.dingdongji.mod.recipe.ItemPortalConversionRecipe;
 import com.dingdongji.mod.recipe.PouchLeggingsRecipe;
 import net.minecraft.core.registries.Registries;
@@ -49,6 +50,21 @@ public class ModRecipes {
       RECIPE_SERIALIZERS.register(
          "pouch_leggings",
          () -> new SimpleCraftingRecipeSerializer<>(PouchLeggingsRecipe::new)
+      );
+
+   // ---------- Anchored Mob Transform（铭化信标内的生物转化） ----------
+   public static final DeferredHolder<RecipeType<?>, RecipeType<AnchoredMobTransformRecipe>> ANCHORED_MOB_TRANSFORM_TYPE =
+      RECIPE_TYPES.register(
+         "anchored_mob_transform",
+         () -> RecipeType.simple(
+            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("dingdongji", "anchored_mob_transform")
+         )
+      );
+
+   public static final DeferredHolder<RecipeSerializer<?>, AnchoredMobTransformRecipe.Serializer> ANCHORED_MOB_TRANSFORM_SERIALIZER =
+      RECIPE_SERIALIZERS.register(
+         "anchored_mob_transform",
+         AnchoredMobTransformRecipe.Serializer::new
       );
 
    private ModRecipes() {

@@ -11,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.SmithingTransformRecipe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin({SmithingTransformRecipe.class})
 public abstract class SmithingTransformRecipeMixin {
-   private static final Logger LOGGER = LoggerFactory.getLogger("dingdongji");
 
    @Inject(
       method = {"isTemplateIngredient"},

@@ -1,0 +1,5 @@
+{
+  "type": "dingdongji:anchored_mob_transform",
+  "inputs": ["minecraft:zombie_horse", "minecraft:skeleton_horse"],
+  "result": "minecraft:horse"
+}

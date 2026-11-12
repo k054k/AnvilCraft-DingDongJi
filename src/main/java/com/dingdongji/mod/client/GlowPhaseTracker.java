@@ -49,6 +49,7 @@ public final class GlowPhaseTracker {
    public enum Outline {
       EMBER("anvilcraft", "block/ember_metal_block_outline"),
       FROST("anvilcraft", "block/frost_metal_block_outline"),
+      SUPERCOOLED("dingdongji", "block/supercooled_frost_metal_block_outline"),
       TRANS("anvilcraft", "block/transcendium_block_outline");
 
       final String namespace;

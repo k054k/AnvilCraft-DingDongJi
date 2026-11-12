@@ -1,0 +1,36 @@
+{
+  "type": "anvilcraft:eight_to_one_smithing",
+  "inputs": [
+    {
+      "items": "dingdongji:ji_upgrade"
+    },
+    {
+      "items": "anvilcraft:four_to_one_smithing_template"
+    },
+    {
+      "items": "anvilcraft:frost_metal_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:deformation_smithing_template"
+    },
+    {
+      "items": "anvilcraft:ember_metal_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:permutation_smithing_template"
+    },
+    {
+      "items": "anvilcraft:royal_steel_upgrade_smithing_template"
+    },
+    {
+      "items": "anvilcraft:two_to_one_smithing_template"
+    }
+  ],
+  "material": {
+    "items": "anvilcraft:multiphase_transcendium"
+  },
+  "result": "dingdongji:create_template",
+  "template": {
+    "items": "anvilcraft:eight_to_one_smithing_template"
+  }
+}

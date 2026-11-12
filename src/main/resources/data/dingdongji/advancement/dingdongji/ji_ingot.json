@@ -1,0 +1,33 @@
+{
+  "parent": "dingdongji:dingdongji/root",
+  "criteria": {
+    "has_ji_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "dingdongji:ji_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.dingdongji.ji_ingot.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "dingdongji:ji_ingot"
+    },
+    "title": {
+      "translate": "advancements.dingdongji.ji_ingot.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_ji_ingot"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

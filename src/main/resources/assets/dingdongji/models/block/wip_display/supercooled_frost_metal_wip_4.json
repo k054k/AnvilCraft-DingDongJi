@@ -1,0 +1,47 @@
+{
+	"format_version": "1.21.6",
+	"credit": "Made by XeKr with Blockbench",
+	"parent": "minecraft:block/block",
+	"ambientocclusion": false,
+	"render_type": "minecraft:cutout",
+	"textures": {
+		"0": "dingdongji:block/supercooled_frost_metal_wip_4",
+		"1": "dingdongji:block/supercooled_frost_metal_wip_4_outline",
+		"particle": "dingdongji:block/supercooled_frost_metal_wip_4"
+	},
+	"elements": [
+		{
+			"from": [0.5, 0.5, 0.5],
+			"to": [15.5, 15.5, 15.5],
+			"faces": {
+				"north": {"uv": [0, 0, 15, 15], "texture": "#0"},
+				"east": {"uv": [0, 0, 15, 15], "texture": "#0"},
+				"south": {"uv": [0, 0, 15, 15], "texture": "#0"},
+				"west": {"uv": [0, 0, 15, 15], "texture": "#0"},
+				"up": {"uv": [0, 0, 15, 15], "texture": "#0"},
+				"down": {"uv": [0, 0, 15, 15], "texture": "#0"}
+			}
+		},
+		{
+			"name": "cube_outline",
+			"from": [15.975, 15.975, 15.975],
+			"to": [0.025, 0.025, 0.025],
+			"shade": false,
+			"light_emission": 15,
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#1"},
+				"east": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#1"},
+				"south": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#1"},
+				"west": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#1"},
+				"up": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#1"},
+				"down": {"uv": [0, 0, 16, 16], "rotation": 180, "texture": "#1"}
+			}
+		}
+	],
+	"display": {
+		"head": {
+			"translation": [0, 6, 0],
+			"scale": [1.5, 1.5, 1.5]
+		}
+	}
+}

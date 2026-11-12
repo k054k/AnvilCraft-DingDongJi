@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "LLL",
+    "NNC",
+    "MMM"
+  ],
+  "key": {
+    "L": { "item": "minecraft:leather" },
+    "N": { "item": "minecraft:iron_nugget" },
+    "C": { "item": "minecraft:chain" },
+    "M": { "item": "anvilcraft:magnet_ingot" }
+  },
+  "result": {
+    "id": "dingdongji:squat_generator_leggings",
+    "count": 1
+  }
+}

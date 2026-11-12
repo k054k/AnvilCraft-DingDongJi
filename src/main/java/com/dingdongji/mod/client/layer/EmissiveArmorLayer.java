@@ -138,7 +138,8 @@ public class EmissiveArmorLayer<T extends LivingEntity> extends RenderLayer<T, H
          return;
       }
 
-      if (!AfterimageManager.isRenderingAfterimage()) {
+      // 残影拖尾染色渲染中跳过发光层；替身重绘不置 tintingRender，发光带照常渲染。
+      if (!AfterimageManager.isTintingRender()) {
          float breathTicks = (float)entity.level().getGameTime() + partialTicks;
          this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.CHEST, breathTicks, partialTicks);
          this.renderPiece(pose, buffers, packedLight, entity, EquipmentSlot.LEGS, breathTicks, partialTicks);

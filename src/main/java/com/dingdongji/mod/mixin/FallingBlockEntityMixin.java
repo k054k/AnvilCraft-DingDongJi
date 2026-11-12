@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin({FallingBlockEntity.class})
 public abstract class FallingBlockEntityMixin {
-   private boolean dingdongji$isJiAnvil = false;
+   private boolean ddj$isJiAnvil = false;
 
    @Shadow
    public abstract BlockState getBlockState();
@@ -29,7 +29,7 @@ public abstract class FallingBlockEntityMixin {
    )
    private void checkJiAnvil(CallbackInfo ci) {
       BlockState bs = this.getBlockState();
-      this.dingdongji$isJiAnvil = bs != null && bs.is((Block)ModBlocks.JI_ANVIL.get());
+      this.ddj$isJiAnvil = bs != null && bs.is((Block)ModBlocks.JI_ANVIL.get());
    }
 
    // 1.21.1 落地放置实际调用的是 Level#setBlock(BlockPos, BlockState, int)（原版 flags=3），
@@ -42,7 +42,7 @@ public abstract class FallingBlockEntityMixin {
       )
    )
    private boolean silenceAnvilPlaceSound(Level level, BlockPos pos, BlockState state, int flags) {
-      return level.setBlock(pos, state, this.dingdongji$isJiAnvil ? 18 : flags);
+      return level.setBlock(pos, state, this.ddj$isJiAnvil ? 18 : flags);
    }
 
    @Inject(
@@ -53,7 +53,7 @@ public abstract class FallingBlockEntityMixin {
       )}
    )
    private void onJiAnvilLand(CallbackInfo ci) {
-      if (this.dingdongji$isJiAnvil) {
+      if (this.ddj$isJiAnvil) {
          FallingBlockEntity self = (FallingBlockEntity)(Object)this;
          if (self.level() instanceof ServerLevel serverLevel) {
             serverLevel.playSound(null, self.blockPosition(), SoundEvents.CHICKEN_AMBIENT, SoundSource.BLOCKS, 1.0F, 1.0F);

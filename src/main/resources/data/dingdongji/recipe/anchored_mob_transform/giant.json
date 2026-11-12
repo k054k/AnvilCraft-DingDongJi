@@ -1,0 +1,19 @@
+{
+  "type": "dingdongji:anchored_mob_transform",
+  "inputs": ["minecraft:giant"],
+  "result": "minecraft:zombie",
+  "variants": [
+    {
+      "input_held": { "id": "anvilcraft:giant_anvil", "count": 1 },
+      "result_item": { "id": "minecraft:anvil", "count": 1 }
+    },
+    {
+      "input_held": { "id": "anvilcraft:giant_monolith_core", "count": 1 },
+      "result_item": { "id": "anvilcraft:monolith_core", "count": 1 }
+    },
+    {
+      "input_held": { "id": "anvilcraft:giant_monolith_line", "count": 1 },
+      "result_item": { "id": "anvilcraft:monolith_line", "count": 1 }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "type": "dingdongji:anchored_mob_transform",
+  "inputs": ["minecraft:piglin_brute"],
+  "result": "minecraft:piglin"
+}
