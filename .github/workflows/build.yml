@@ -47,7 +47,7 @@ jobs:
             exit 1
           fi
           TAG="v${VERSION}"
-          JAR=$(find build/libs -name 'anvilcraft-dingdongji-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n1)
+          JAR=$(find build/libs -name 'anvilcraft_dingdongji-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n1)
           if [ -z "$JAR" ]; then
             echo "No mod jar found in build/libs"
             exit 1
