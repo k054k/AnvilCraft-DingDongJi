@@ -1,16 +1,36 @@
 repositories {
     mavenLocal()
-    mavenCentral()
-    maven { // 阿里云镜像，国内加速
-        name = "Aliyun"
-        url = "https://maven.aliyun.com/repository/public/"
+    exclusiveContent { // AnvilLib, Ageratum, AnvilCraft
+        forRepositories(
+                mavenCentral(),
+                maven {
+                    name = "Cjsah Maven"
+                    url = "https://server.cjsah.net:1002/maven/"
+                    content {
+                        includeGroup "dev.anvilcraft.lib"
+                        includeGroup "dev.anvilcraft.resource"
+                        includeGroup "dev.dubhe"
+                    }
+                }
+        )
+        filter {
+            includeGroup "dev.anvilcraft.lib"
+            includeGroup "dev.anvilcraft.resource"
+            includeGroup "dev.dubhe"
+        }
     }
-    maven { // NeoForged
-        name = "NeoForged"
-        url = "https://maven.neoforged.net/releases"
+    maven { // Sodium, Embeddium, Iris, Jade
+        name = "Modrinth Maven"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
     }
-    // 本地 mod 依赖（铁砧工艺硬前置 jar）
-    flatDir {
-        dir 'libs'
+    maven { // JEI
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+        content {
+            includeGroup "mezz.jei"
+        }
     }
 }
